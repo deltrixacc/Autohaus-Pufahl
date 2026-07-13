@@ -1,0 +1,116 @@
+{
+  "updatedAt": "2026-06-17T00:00:00.000Z",
+  "source": "seed",
+  "dealerUrl": "https://home.mobile.de/AH-PUFAHL",
+  "count": 9,
+  "vehicles": [
+    {
+      "make": "Mercedes-Benz", "model": "GLA 180", "variant": "Kamera · sehr gepflegt",
+      "priceNow": 15980, "priceWas": 16950, "km": 77000, "firstReg": "10/2018",
+      "powerPs": 122, "powerKw": 90, "fuel": "Benzin", "gearbox": "Schaltgetriebe",
+      "bodyType": "suv", "accidentFree": true, "badge": "Reduziert", "adId": "449422017",
+      "detailUrl": "https://suchen.mobile.de/fahrzeuge/details.html?id=449422017",
+      "imageUrl": "https://img.classistatic.de/api/v1/mo-prod/images/ff/ff8c3cb8-7473-4def-9f7b-df36d213511e?rule=mo-1600",
+      "images": ["https://img.classistatic.de/api/v1/mo-prod/images/ff/ff8c3cb8-7473-4def-9f7b-df36d213511e?rule=mo-1600"],
+      "equipment": ["Sitzheizung","Einparkhilfe-Kamera","Einparkhilfe Sensoren hinten","Klimaautomatik","Multifunktionslenkrad","Tempomat","Bluetooth","Freisprecheinrichtung","Zentralverriegelung","Elektronische Wegfahrsperre","Elektron. Stabilitätsprogramm (ESP)","ABS","Tagfahrlicht"],
+      "co2": 142, "consumption": "6,2 l/100km",
+      "description": "Sehr gepflegter Mercedes-Benz GLA 180 aus erster Hand, mit Rückfahrkamera und vollständigem Scheckheft. Der Wagen wurde regelmäßig gewartet und überzeugt durch einen top Pflegezustand innen wie außen. Bei uns technisch geprüft und aufbereitet – sofort verfügbar."
+    },
+    {
+      "make": "Audi", "model": "Q2", "variant": "top Ausstattung · Automatik · Kamera",
+      "priceNow": 23400, "priceWas": 24400, "km": 49000, "firstReg": "05/2023",
+      "powerPs": 150, "powerKw": 110, "fuel": "Benzin", "gearbox": "Automatik",
+      "bodyType": "suv", "accidentFree": true, "badge": "Reduziert", "adId": "456265145",
+      "detailUrl": "https://suchen.mobile.de/fahrzeuge/details.html?id=456265145",
+      "imageUrl": "https://img.classistatic.de/api/v1/mo-prod/images/dd/dd466b95-2198-4115-b7a3-fbe2794ba061?rule=mo-1600",
+      "images": ["https://img.classistatic.de/api/v1/mo-prod/images/dd/dd466b95-2198-4115-b7a3-fbe2794ba061?rule=mo-1600"],
+      "equipment": ["Sitzheizung","Sportsitze","Einparkhilfe-Kamera","Einparkhilfe Sensoren vorne","Einparkhilfe Sensoren hinten","Navigationssystem","Klimaautomatik","Tempomat","Bordcomputer","Bluetooth","Apple CarPlay","Zentralverriegelung","Elektron. Stabilitätsprogramm (ESP)","Spurhalteassistent","ABS"],
+      "co2": 138, "consumption": "6,0 l/100km",
+      "description": "Junger Audi Q2 in nahezu neuwertigem Zustand mit umfangreicher Ausstattung: Rundum-Kamera, Navigation und Sportsitze inklusive. Scheckheftgepflegt und unfallfrei laut Vorbesitzer. Ideal für alle, die ein modernes, sparsames SUV suchen."
+    },
+    {
+      "make": "Land Rover", "model": "Discovery Sport", "variant": "alle Extras · tolles Design",
+      "priceNow": 22900, "priceWas": 23750, "km": 60000, "firstReg": "04/2019",
+      "powerPs": 150, "powerKw": 110, "fuel": "Diesel", "gearbox": "Automatik",
+      "bodyType": "suv", "accidentFree": true, "badge": "Reduziert", "adId": "455287232",
+      "detailUrl": "https://suchen.mobile.de/fahrzeuge/details.html?id=455287232",
+      "imageUrl": "https://img.classistatic.de/api/v1/mo-prod/images/a9/a9862cf7-cd6d-49d4-9ff3-2c0e5f1db5e9?rule=mo-1600",
+      "images": ["https://img.classistatic.de/api/v1/mo-prod/images/a9/a9862cf7-cd6d-49d4-9ff3-2c0e5f1db5e9?rule=mo-1600"],
+      "equipment": ["Sitzheizung","Lederausstattung","Panorama-Dach","Einparkhilfe-Kamera","Einparkhilfe Sensoren hinten","Einparkhilfe Sensoren vorne","Navigationssystem","Klimaautomatik","Tempomat","Anhängerkupplung","Bordcomputer","Freisprecheinrichtung","Zentralverriegelung","Elektron. Stabilitätsprogramm (ESP)","Totwinkel-Assistent","ABS"],
+      "co2": 149, "consumption": "5,7 l/100km",
+      "description": "Stilvoller Land Rover Discovery Sport mit nahezu voller Ausstattungsliste: Leder, Panoramadach, Anhängerkupplung und Rundumsicht-Kamera. Ein souveräner Begleiter für Familie und Freizeit, technisch geprüft und übergabefertig."
+    },
+    {
+      "make": "Volvo", "model": "XC60", "variant": "AHK 1.800 kg · wenig km",
+      "priceNow": 21650, "priceWas": 22750, "km": 79000, "firstReg": "05/2017",
+      "powerPs": 190, "powerKw": 140, "fuel": "Diesel", "gearbox": "Automatik",
+      "bodyType": "suv", "accidentFree": true, "badge": "Reduziert", "adId": "456871477",
+      "detailUrl": "https://suchen.mobile.de/fahrzeuge/details.html?id=456871477",
+      "imageUrl": "https://img.classistatic.de/api/v1/mo-prod/images/38/38c5236f-3a96-4b69-aeb3-495ea042741c?rule=mo-1600",
+      "images": ["https://img.classistatic.de/api/v1/mo-prod/images/38/38c5236f-3a96-4b69-aeb3-495ea042741c?rule=mo-1600"],
+      "equipment": ["Sitzheizung","Lederausstattung","Anhängerkupplung","Einparkhilfe-Kamera","Einparkhilfe Sensoren hinten","Einparkhilfe Sensoren vorne","Navigationssystem","Klimaautomatik","Tempomat","Bordcomputer","Bluetooth","Zentralverriegelung","Elektron. Stabilitätsprogramm (ESP)","Spurhalteassistent","ABS"],
+      "co2": 132, "consumption": "5,0 l/100km",
+      "description": "Gepflegter Volvo XC60 mit kräftigen 190 PS und Anhängerkupplung für bis zu 1.800 kg – ideal zum Ziehen von Anhänger oder Wohnwagen. Wenig Vorbesitzer, gepflegter Zustand, viele Assistenzsysteme für entspanntes Fahren."
+    },
+    {
+      "make": "Land Rover", "model": "Range Rover Evoque", "variant": "wenig km · top Ausstattung",
+      "priceNow": 23300, "priceWas": 24500, "km": 43000, "firstReg": "02/2020",
+      "powerPs": 150, "powerKw": 110, "fuel": "Diesel", "gearbox": "Automatik",
+      "bodyType": "suv", "accidentFree": true, "badge": "Reduziert", "adId": "455010394",
+      "detailUrl": "https://suchen.mobile.de/fahrzeuge/details.html?id=455010394",
+      "imageUrl": "https://img.classistatic.de/api/v1/mo-prod/images/c4/c4ba5cac-e086-4b01-8332-f4e255cd2bf7?rule=mo-1600",
+      "images": ["https://img.classistatic.de/api/v1/mo-prod/images/c4/c4ba5cac-e086-4b01-8332-f4e255cd2bf7?rule=mo-1600"],
+      "equipment": ["Sitzheizung","Lederausstattung","Panorama-Dach","Einparkhilfe-Kamera","Einparkhilfe Sensoren hinten","Einparkhilfe Sensoren vorne","Navigationssystem","Klimaautomatik","Tempomat","Bordcomputer","Freisprecheinrichtung","Bluetooth","Zentralverriegelung","Elektron. Stabilitätsprogramm (ESP)","Totwinkel-Assistent","Spurhalteassistent","ABS"],
+      "co2": 144, "consumption": "5,5 l/100km",
+      "description": "Attraktiver Range Rover Evoque mit geringer Laufleistung und hochwertiger Vollausstattung inklusive Panoramadach und Lederausstattung. Fahrzeug wurde bei uns technisch überprüft und für die Übergabe aufbereitet."
+    },
+    {
+      "make": "Opel", "model": "Insignia GSI", "variant": "Vollausstattung · 230 PS",
+      "priceNow": 29900, "priceWas": null, "km": 46000, "firstReg": "01/2022",
+      "powerPs": 230, "powerKw": 169, "fuel": "Benzin", "gearbox": "Automatik",
+      "bodyType": "limousine", "accidentFree": true, "badge": "Gebraucht", "adId": "457924840",
+      "detailUrl": "https://suchen.mobile.de/fahrzeuge/details.html?id=457924840",
+      "imageUrl": "https://img.classistatic.de/api/v1/mo-prod/images/94/9456fd37-d6e5-460d-bb9e-4e36d42a88c5?rule=mo-1600",
+      "images": ["https://img.classistatic.de/api/v1/mo-prod/images/94/9456fd37-d6e5-460d-bb9e-4e36d42a88c5?rule=mo-1600"],
+      "equipment": ["Sportsitze","Sitzheizung","Lederausstattung","Einparkhilfe-Kamera","Einparkhilfe Sensoren hinten","Einparkhilfe Sensoren vorne","Navigationssystem","Klimaautomatik","Multifunktionslenkrad","Tempomat","Bordcomputer","Bluetooth","Apple CarPlay","Zentralverriegelung","Elektron. Stabilitätsprogramm (ESP)","Spurhalteassistent","ABS","Tagfahrlicht"],
+      "co2": 168, "consumption": "7,4 l/100km",
+      "description": "Sportlicher Opel Insignia GSI mit kraftvollen 230 PS und Vollausstattung. Sportsitze, Leder und ein umfangreiches Assistenzpaket machen dieses Fahrzeug zu einem besonderen Angebot für Fahrer, die Leistung und Komfort verbinden möchten."
+    },
+    {
+      "make": "BMW", "model": "225 Active Tourer", "variant": "sehr gepflegt · reduziert",
+      "priceNow": 15900, "priceWas": 16900, "km": 77000, "firstReg": "11/2020",
+      "powerPs": 136, "powerKw": 100, "fuel": "Benzin", "gearbox": "Automatik",
+      "bodyType": "van", "accidentFree": true, "badge": "Reduziert", "adId": "449426029",
+      "detailUrl": "https://suchen.mobile.de/fahrzeuge/details.html?id=449426029",
+      "imageUrl": "https://img.classistatic.de/api/v1/mo-prod/images/1f/1fa3df7e-1842-40f2-ad65-0099b659c1f6?rule=mo-1600",
+      "images": ["https://img.classistatic.de/api/v1/mo-prod/images/1f/1fa3df7e-1842-40f2-ad65-0099b659c1f6?rule=mo-1600"],
+      "equipment": ["Sitzheizung","Einparkhilfe","Einparkhilfe Sensoren hinten","Klimaautomatik","Multifunktionslenkrad","Tempomat","Bordcomputer","Freisprecheinrichtung","Bluetooth","Zentralverriegelung","Elektron. Stabilitätsprogramm (ESP)","ABS","Tagfahrlicht"],
+      "co2": 145, "consumption": "6,4 l/100km",
+      "description": "Sehr gepflegter BMW 225 Active Tourer mit viel Platz für die ganze Familie. Der Wagen wurde regelmäßig gewartet, ist unfallfrei und aktuell besonders preisreduziert. Jetzt Probefahrt vereinbaren."
+    },
+    {
+      "make": "Ford", "model": "S-Max", "variant": "7 Sitze · LED · viel Platz",
+      "priceNow": 19550, "priceWas": null, "km": 60000, "firstReg": "06/2018",
+      "powerPs": 160, "powerKw": 118, "fuel": "Benzin", "gearbox": "Automatik",
+      "bodyType": "van", "accidentFree": true, "badge": "Gebraucht", "adId": "457346741",
+      "detailUrl": "https://suchen.mobile.de/fahrzeuge/details.html?id=457346741",
+      "imageUrl": "https://img.classistatic.de/api/v1/mo-prod/images/34/341efdd6-2eb8-4cb3-b2f4-401fe512f811?rule=mo-1600",
+      "images": ["https://img.classistatic.de/api/v1/mo-prod/images/34/341efdd6-2eb8-4cb3-b2f4-401fe512f811?rule=mo-1600"],
+      "equipment": ["Sitzheizung","7-Sitzer","Einparkhilfe-Kamera","Einparkhilfe Sensoren hinten","Einparkhilfe Sensoren vorne","Navigationssystem","Klimaautomatik","Tempomat","Bordcomputer","Freisprecheinrichtung","Bluetooth","Zentralverriegelung","Elektron. Stabilitätsprogramm (ESP)","ABS","Tagfahrlicht"],
+      "co2": 152, "consumption": "6,7 l/100km",
+      "description": "Geräumiger Ford S-Max mit 7 Sitzen für die ganze Familie oder als Vielfahrer-Kombi. LED-Scheinwerfer, große Kofferraumkapazität und ein komfortables Fahrwerk machen ihn zum idealen Alltagsbegleiter."
+    },
+    {
+      "make": "Opel", "model": "Grandland", "variant": "Facelift · super gepflegt",
+      "priceNow": 19500, "priceWas": 19900, "km": 39000, "firstReg": "08/2021",
+      "powerPs": 181, "powerKw": 133, "fuel": "Benzin", "gearbox": "Automatik",
+      "bodyType": "suv", "accidentFree": true, "badge": "Reduziert", "adId": "450000528",
+      "detailUrl": "https://suchen.mobile.de/fahrzeuge/details.html?id=450000528",
+      "imageUrl": "https://img.classistatic.de/api/v1/mo-prod/images/11/11b95c16-a088-4272-a777-6d9473e0a3f7?rule=mo-1600",
+      "images": ["https://img.classistatic.de/api/v1/mo-prod/images/11/11b95c16-a088-4272-a777-6d9473e0a3f7?rule=mo-1600"],
+      "equipment": ["Sitzheizung","Einparkhilfe-Kamera","Einparkhilfe Sensoren hinten","Einparkhilfe Sensoren vorne","Navigationssystem","Klimaautomatik","Multifunktionslenkrad","Tempomat","Bordcomputer","Bluetooth","Apple CarPlay","Zentralverriegelung","Elektron. Stabilitätsprogramm (ESP)","Spurhalteassistent","ABS","Tagfahrlicht"],
+      "co2": 149, "consumption": "6,5 l/100km",
+      "description": "Der Opel Grandland im aktuellen Facelift-Design ist in einem super gepflegten Zustand und bietet moderne Konnektivität sowie ein umfangreiches Sicherheitspaket. Ideal für Vielfahrer, die Komfort und Effizienz schätzen."
+    }
+  ]
+}
