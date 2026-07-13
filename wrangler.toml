@@ -1,0 +1,32 @@
+name = "pufahl-inventory"
+main = "worker.js"
+compatibility_date = "2025-06-01"
+
+# Re-scrape mobile.de every 6 hours (UTC). Adjust as you like.
+[triggers]
+crons = ["0 */6 * * *"]
+
+# KV namespace that stores the latest inventory JSON.
+# Create it first:  npx wrangler kv namespace create INVENTORY
+# then paste the returned id below.
+[[kv_namespaces]]
+binding = "INVENTORY"
+id = "fa8de9af78bc42b2bd64437775657d20"
+
+[vars]
+DEALER_URL = "https://home.mobile.de/AH-PUFAHL"
+ALLOWED_ORIGIN = "*"            # set to https://www.autohaus-pufahl.de in production
+ANTHROPIC_MODEL = "claude-haiku-4-5"
+MAX_PAGES = "2"
+IMG_RULE = "mo-1600"
+
+# ANTHROPIC_API_KEY is a secret, not a var:
+#   npx wrangler secret put ANTHROPIC_API_KEY
+
+# ── Live Zentrallager search (fahrzeugsuche.html → GET /api/search) ──────────
+# Uses mobile.de's OFFICIAL Search-API. Request API access for your dealer
+# account from mobile.de, then store the credentials as secrets (not vars):
+#   npx wrangler secret put MOBILE_API_USER
+#   npx wrangler secret put MOBILE_API_PASSWORD
+# Finally set window.MOBILE_SEARCH_API in inventory-config.js to this worker's
+#   https://<worker>.workers.dev/api/search
