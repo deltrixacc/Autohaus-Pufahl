@@ -1,0 +1,20 @@
+{
+  "name": "pufahl-inventory-api",
+  "version": "1.0.0",
+  "description": "Scheduled service that mirrors Autohaus Pufahl's mobile.de inventory and serves it as JSON to the website.",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "refresh": "node -e \"import('./lib/fetchInventory.js').then(m=>m.fetchInventory().then(r=>console.log(JSON.stringify(r,null,2))))\""
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.2",
+    "node-cron": "^3.0.3"
+  }
+}
