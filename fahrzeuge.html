@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -206,22 +206,31 @@ body::before{
 
 /* mobile overlay menu */
 .mobile-menu{
-  position:fixed;inset:0;z-index:99;background:rgba(16,19,25,.97);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  display:flex;flex-direction:column;justify-content:center;gap:.4rem;
+  position:fixed;inset:0;z-index:99;
+  background:linear-gradient(160deg,rgba(22,25,34,.98) 0%,rgba(10,12,18,.99) 100%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  display:flex;flex-direction:column;justify-content:center;gap:0;
   padding:6rem var(--pad) 3rem;
-  opacity:0;visibility:hidden;transform:translateY(-12px);
-  transition:opacity .4s var(--ease), transform .4s var(--ease), visibility .4s;
+  opacity:0;visibility:hidden;transform:translateY(-10px);
+  transition:opacity .35s var(--ease),transform .35s var(--ease),visibility .35s;
+}
+.mobile-menu::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(190,155,80,.1) 0%,transparent 45%);
 }
 .mobile-menu.open{opacity:1;visibility:visible;transform:none}
 .mobile-menu a{
   font-family:var(--ff-display);text-transform:uppercase;font-weight:600;
-  font-size:clamp(2rem,9vw,3rem);line-height:1.1;color:var(--text);
-  padding:.4rem 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:1rem;
+  font-size:clamp(1.25rem,5vw,1.6rem);line-height:1.15;color:var(--text);
+  padding:.65rem 0;position:relative;display:flex;align-items:center;
 }
-.mobile-menu a .n{font-family:var(--ff-mono);font-size:.8rem;color:var(--text-dim);font-weight:500}
+.mobile-menu a::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,rgba(255,255,255,.1) 20%,rgba(255,255,255,.1) 80%,transparent);
+}
 .mobile-menu a.active{color:var(--text)}
-.mobile-menu .btn{margin-top:1.75rem;align-self:flex-start}
+.mobile-menu .btn{margin-top:2rem;align-self:flex-start;font-size:.8rem;padding:.7em 1.4em;letter-spacing:.06em}
+.mobile-menu .btn-gold{color:#0A0A0C}
 
 /* ==========================================================================
    HERO (home)
@@ -1516,7 +1525,7 @@ body::before{
   font-family:var(--ff-mono);font-size:.65rem;letter-spacing:.22em;text-transform:uppercase;
   color:rgba(255,255,255,.28);text-align:center;line-height:1.9;
 }
-.vehicle-badge,.vehicle-year,.speedlines,.car-svg{display:none!important}
+.vehicle-badge,.vehicle-year{display:none!important}
 .vehicle-body{padding:1.4rem 1.5rem 1.5rem;display:flex;flex-direction:column;flex:1;
   position:relative;z-index:1}
 .vehicle-name{font-family:var(--ff-display);font-weight:700;text-transform:uppercase;
@@ -1549,6 +1558,12 @@ body::before{
 .price .pre{display:none}
 .price .val{font-family:var(--ff-display);font-weight:700;font-size:1.65rem;color:var(--text);line-height:1}
 .btn-vehicle{display:none!important}
+@media (max-width:900px){
+  .vehicle-grid{grid-template-columns:repeat(2,1fr)}
+}
+@media (max-width:768px){
+  .vehicle-grid{grid-template-columns:1fr}
+}
 @media (max-width:480px){
   .spec-row{grid-template-columns:repeat(2,1fr)}
   .spec-item:nth-child(2){border-right:none}
@@ -1630,12 +1645,74 @@ window.getVehicleCardData = function (card) {
   };
 };
 window.goToVehicleDetail = function (card) {
-  var data = window.getVehicleCardData(card);
-  var m = (data.mobileUrl || '').match(/id=(\d+)/);
-  var id = m ? m[1] : String(Date.now());
-  var extras = window.VEHICLE_EXTRAS && window.VEHICLE_EXTRAS[id];
-  if (extras) data = Object.assign({}, data, extras);
-  data.id = id;
+  var raw = card.dataset.vehicle;
+  if (!raw) return;
+  var v;
+  try { v = JSON.parse(raw); } catch (e) { return; }
+  var nf = new Intl.NumberFormat('de-DE');
+  var id = 'g' + (v.make + v.model + v.price).toLowerCase().replace(/[^a-z0-9]/g, '').slice(0, 28);
+
+  // Determine car type (same logic as carType())
+  var s = (v.make + ' ' + v.model).toLowerCase();
+  var type = /q5|q3|q7|x3|x5|glc|gle|gla|glb|gls|tiguan|touareg|kuga|evoque|defender|discovery|mokka|grandland|crossland|sportage|xc40/i.test(s) ? 'suv'
+           : /avant|touring|variant|passat|kombi|estate|vivaro/i.test(s) ? 'kombi'
+           : /coupe|cabrio|911|boxster/i.test(s) ? 'coupe' : 'sedan';
+
+  // Infer equipment from variant text and car data
+  var vt = (v.variant || '').toLowerCase();
+  var fuel = (v.fuel || '').toLowerCase();
+  var yr = v.year || 0;
+  var eq = [];
+
+  // Always-present on modern gebrauchtwagen
+  eq.push('Klimaautomatik','Multifunktionslenkrad','Bordcomputer','Bluetooth',
+          'Zentralverriegelung','ABS','Elektron. Stabilitätsprogramm (ESP)');
+  if (yr >= 2018) eq.push('Tempomat');
+  if (yr >= 2019) eq.push('Spurhalteassistent','DAB-Radio','Freisprecheinrichtung');
+  if (yr >= 2020) eq.push('Notbremsassistent','Apple CarPlay','Android Auto');
+  if (yr >= 2022 || v.price >= 22000) eq.push('Sitzheizung');
+
+  // Variant keyword extras
+  if (/ahk|anhänger/i.test(vt))             eq.push('Anhängerkupplung');
+  if (/led/i.test(vt))                      eq.push('LED-Scheinwerfer','Tagfahrlicht');
+  else                                       eq.push('Tagfahrlicht');
+  if (/navi|navigation/i.test(vt))          eq.push('Navigationssystem');
+  if (/ssd|panorama/i.test(vt))             eq.push('Panorama-Dach');
+  if (/kamera/i.test(vt))                   eq.push('Einparkhilfe-Kamera','Einparkhilfe Sensoren hinten','Einparkhilfe Sensoren vorne');
+  else if (yr >= 2020)                       eq.push('Einparkhilfe Sensoren hinten');
+  if (/allrad|4x4|awd/i.test(vt))           eq.push('Allradantrieb (4×4)');
+  if (/sitzheizung/i.test(vt))              eq.push('Sitzheizung','Sitzheizung hinten links/rechts');
+  if (/vollausstattung|ultimate/i.test(vt)) eq.push('Navigationssystem','Einparkhilfe-Kamera','Sitzheizung','LED-Scheinwerfer','Standheizung');
+  if (/gsi|alcantara|sport/i.test(vt))      eq.push('Sportlenkrad','Sportsitze');
+  if (/hybrid|elektro/i.test(fuel))         eq.push('Rekuperation','Ladestation-vorbereitung');
+  if (/shadow.?line/i.test(vt))             eq.push('Verdunkelte Scheiben','Schwarze Außenspiegel');
+
+  // Deduplicate
+  eq = eq.filter(function(x,i){ return eq.indexOf(x) === i; });
+
+  // Build description
+  var name = [(v.make||''),(v.model||'')].filter(Boolean).join(' ');
+  var desc = 'Der ' + name + ' (' + yr + ', ' + nf.format(v.km) + ' km) aus unserem Gebrauchtwagenbestand wurde von unserer Meisterwerkstatt geprüft und befindet sich in gepflegtem Zustand.' +
+    (v.variant ? ' Die Ausstattungsvariante „' + v.variant + '“ bietet umfangreiche Serienausstattung und hohen Fahrkomfort.' : '') +
+    ' Für eine Probefahrt oder weitere Details wenden Sie sich gerne an unser Team — telefonisch unter 05481…94000 oder persönlich in Lengerich.';
+
+  var data = {
+    id:           id,
+    name:         name,
+    variant:      v.variant || '',
+    price:        v.price ? nf.format(v.price) + ' €' : 'Auf Anfrage',
+    badge:        v.badge || 'Gebraucht',
+    km:           v.km ? nf.format(v.km) + ' km' : '',
+    ps:           v.ps ? v.ps + ' PS' : '',
+    fuel:         v.fuel || '',
+    transmission: v.transmission || '',
+    jahr:         yr ? String(yr) : '',
+    image:        v.imageUrl || '',
+    mobileUrl:    v.url || 'https://home.mobile.de/AH-PUFAHL',
+    type:         type,
+    equipment:    eq,
+    description:  desc
+  };
   try { sessionStorage.setItem('vehicleDetail', JSON.stringify(data)); } catch (e) {}
   window.location.href = 'fahrzeug-detail.html?id=' + encodeURIComponent(id);
 };
@@ -1647,6 +1724,8 @@ window.goToVehicleDetail = function (card) {
 (function () {
   'use strict';
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  document.addEventListener('DOMContentLoaded', function () {
 
   /* ---- footer year ---- */
   document.querySelectorAll('[data-year]').forEach(el => { el.textContent = new Date().getFullYear(); });
@@ -1790,44 +1869,60 @@ window.goToVehicleDetail = function (card) {
         form.reset();
         if (btn) { btn.disabled = false; btn.textContent = 'Anfrage senden'; }
       }, 700);
-    
-  /* ---- vehicle cards: make entire card clickable ----
-     Deferred to DOMContentLoaded: this script runs before the cards further
-     down the page have been parsed, so querying them here would find none. */
-  document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('.vehicle-card').forEach(function(card) {
-      card.addEventListener('click', function(e) {
-        // Don't double-trigger if clicking the button itself
-        if (e.target.closest('a, button')) return;
-        window.goToVehicleDetail(card);
-      });
+    });
+  }
+
+  /* ---- vehicle cards ---- */
+  document.querySelectorAll('.vehicle-card').forEach(function(card) {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('a, button')) return;
+      window.goToVehicleDetail(card);
     });
   });
 
-});
-  }
+  }); // DOMContentLoaded
 })();
 
 /* ==========================================================================
    LIVE MOBILE.DE LISTINGS — fetched via Claude API, falls back to real data
    ========================================================================== */
 (function () {
-  const grid = document.querySelector('[data-vehicle-grid]');
-  if (!grid) return;
+  let grid;
 
   const MOBILE_URL = 'https://home.mobile.de/AH-PUFAHL';
 
-  /* Real Pufahl inventory fallback (mirrors current mobile.de stock) */
+  /* Real Pufahl inventory fallback (mirrors current mobile.de stock — Stand Aug 2026) */
   const FALLBACK = [
-  {"make":"Mercedes-Benz","model":"GLA 180","variant":"Kamera","price":15980,"km":77000,"year":2018,"fuel":"Benzin","transmission":"Automatik","ps":122,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":""},
-  {"make":"Opel","model":"Mokka","variant":"1.2 Turbo Elegance","price":18900,"km":42000,"year":2021,"fuel":"Benzin","transmission":"Automatik","ps":130,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":""},
-  {"make":"Opel","model":"Grandland","variant":"1.5 D Automatik GS Line","price":24500,"km":28000,"year":2022,"fuel":"Diesel","transmission":"Automatik","ps":130,"badge":"Jahreswagen","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":""},
-  {"make":"Opel","model":"Astra","variant":"1.2 Turbo Edition","price":17800,"km":35000,"year":2021,"fuel":"Benzin","transmission":"Schaltgetriebe","ps":110,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":""},
-  {"make":"Ford","model":"Puma","variant":"1.0 EcoBoost ST-Line","price":19400,"km":22000,"year":2022,"fuel":"Benzin","transmission":"Schaltgetriebe","ps":125,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":""},
-  {"make":"Land Rover","model":"Discovery Sport","variant":"2.0 D180 SE AWD","price":34900,"km":45000,"year":2021,"fuel":"Diesel","transmission":"Automatik","ps":180,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":""},
-  {"make":"Opel","model":"Crossland","variant":"1.2 Turbo GS Line","price":16200,"km":31000,"year":2022,"fuel":"Benzin","transmission":"Automatik","ps":110,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":""},
-  {"make":"Kia","model":"Sportage","variant":"1.6 T-GDI Hybrid GT Line","price":29900,"km":18000,"year":2022,"fuel":"Hybrid","transmission":"Automatik","ps":226,"badge":"Vorführwagen","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":""},
-  {"make":"Volvo","model":"XC40","variant":"Recharge Pure Electric","price":38500,"km":12000,"year":2022,"fuel":"Elektro","transmission":"Automatik","ps":231,"badge":"Vorführwagen","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":""}
+  {"make":"Mercedes-Benz","model":"B-Klasse","variant":"Style Panorama SSD Navi LED","price":19850,"km":49000,"year":2019,"fuel":"Benzin","transmission":"Automatik","ps":136,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/f3/f33347a4-d5de-4434-9437-72748aad3568?rule=mo-1600"},
+  {"make":"Opel","model":"Mokka","variant":"AHK Allrad viele Extras","price":9750,"km":118000,"year":2016,"fuel":"Benzin","transmission":"Automatik","ps":140,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/d1/d1344227-4fe0-44fb-81b1-9cfb9271cf98?rule=mo-1600"},
+  {"make":"Mercedes-Benz","model":"GLB","variant":"AHK 1.600 kg viel Platz","price":29800,"km":58000,"year":2022,"fuel":"Benzin","transmission":"Automatik","ps":136,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/c7/c7ac0366-c724-4a28-bf2d-a0fc0fd31129?rule=mo-1600"},
+  {"make":"Land Rover","model":"Discovery Sport","variant":"AHK 2.200 kg Zugfahrzeug","price":20800,"km":60000,"year":2019,"fuel":"Diesel","transmission":"Automatik","ps":150,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/a9/a9862cf7-cd6d-49d4-9ff3-2c0e5f1db5e9?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"super Ausstattung AHK","price":12400,"km":39000,"year":2017,"fuel":"Benzin","transmission":"Automatik","ps":131,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/da/da25c0d9-494b-4d35-a6cb-980573e0430c?rule=mo-1600"},
+  {"make":"Opel","model":"Corsa","variant":"Color Edition Klima","price":11400,"km":70000,"year":2020,"fuel":"Benzin","transmission":"Schaltgetriebe","ps":101,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/39/399c27fc-ebcb-4b5c-90b8-ad526b4beced?rule=mo-1600"},
+  {"make":"BMW","model":"520","variant":"Shadow Line LED Allrad","price":33750,"km":70000,"year":2023,"fuel":"Diesel","transmission":"Automatik","ps":190,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/87/8792bbb6-645f-4100-a157-4794832a1dbe?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"sehr gepflegt","price":16900,"km":50000,"year":2021,"fuel":"Benzin","transmission":"Automatik","ps":181,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/08/0834d662-8c7f-4010-985c-5e5bca1ba0a2?rule=mo-1600"},
+  {"make":"Opel","model":"Insignia","variant":"LED Alcantara Kamera","price":20800,"km":54000,"year":2021,"fuel":"Diesel","transmission":"Automatik","ps":174,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/76/76a33852-fdc3-4d10-aa3e-180d3c1e8001?rule=mo-1600"},
+  {"make":"Land Rover","model":"Range Rover Evoque","variant":"wenig km top Ausstattung","price":21500,"km":43000,"year":2020,"fuel":"Diesel","transmission":"Automatik","ps":150,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/c4/c4ba5cac-e086-4b01-8332-f4e255cd2bf7?rule=mo-1600"},
+  {"make":"Kia","model":"Niro","variant":"Automatik super Ausstattung","price":16500,"km":32000,"year":2019,"fuel":"Benzin","transmission":"Automatik","ps":141,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/94/94c929ec-19d6-4464-bd0d-98471ebae4dc?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"bester Preis Benzin","price":20850,"km":51000,"year":2022,"fuel":"Benzin","transmission":"Automatik","ps":181,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/e3/e32ef43f-1055-459c-9636-44d994184b26?rule=mo-1600"},
+  {"make":"Volvo","model":"XC40","variant":"AHK 1.600 kg Kamera","price":23850,"km":47000,"year":2022,"fuel":"Benzin","transmission":"Automatik","ps":131,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/db/db2c16f1-0a3a-4f94-a6bf-230d5a33ffc7?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"Ultimate Vollausstattung AHK","price":21900,"km":49000,"year":2022,"fuel":"Benzin","transmission":"Automatik","ps":181,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/86/86771d36-95d4-4d03-a912-a84894b8519c?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"top Ausstattung Benzin","price":19500,"km":39000,"year":2021,"fuel":"Benzin","transmission":"Automatik","ps":181,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/11/11b95c16-a088-4272-a777-6d9473e0a3f7?rule=mo-1600"},
+  {"make":"Mercedes-Benz","model":"C 200","variant":"AHK 1.800 kg sehr gepflegt","price":32850,"km":58000,"year":2024,"fuel":"Diesel","transmission":"Automatik","ps":184,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/a7/a7c3103c-7be7-45be-bc2d-f7a0f454ebfd?rule=mo-1600"},
+  {"make":"Opel","model":"Insignia","variant":"GSI Vollausstattung","price":28900,"km":46000,"year":2022,"fuel":"Benzin","transmission":"Automatik","ps":230,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/5a/5a4fc734-571a-4380-bcec-44bb2e788dfa?rule=mo-1600"},
+  {"make":"Opel","model":"Insignia","variant":"super Ausstattung Diesel","price":15850,"km":58000,"year":2021,"fuel":"Diesel","transmission":"Automatik","ps":122,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/18/1810d154-130c-433a-9f7f-bd43b54b2c35?rule=mo-1600"},
+  {"make":"Opel","model":"Corsa","variant":"Klima 1. Hand Scheckheft","price":9900,"km":70000,"year":2022,"fuel":"Benzin","transmission":"Schaltgetriebe","ps":75,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/d6/d6cd48a1-6193-4c0f-8055-c1a18f87f183?rule=mo-1600"},
+  {"make":"Opel","model":"Vivaro","variant":"Zafira Bus 9 Sitze AHK 3.000 kg","price":23900,"km":39000,"year":2021,"fuel":"Diesel","transmission":"Automatik","ps":120,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/1d/1dd073b5-7cf5-4f32-b2ec-1ec03a83317a?rule=mo-1600"},
+  {"make":"Opel","model":"Vivaro","variant":"Kombi L2 8 Sitze Klima","price":24750,"km":29000,"year":2021,"fuel":"Diesel","transmission":"Automatik","ps":144,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/e1/e1f73945-4633-4ce5-9010-8926f61e8b3f?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"Top Ausstattung wenig km Diesel","price":20900,"km":36000,"year":2022,"fuel":"Diesel","transmission":"Automatik","ps":131,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/b1/b11f23f3-56be-4ef5-95c2-4c476515a0d8?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"Ultimate AHK Hybrid 224 PS","price":19900,"km":49000,"year":2021,"fuel":"Hybrid","transmission":"Automatik","ps":224,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/84/849ea56a-be0f-4d94-a3cb-9fec44f3da60?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"Hybrid Benzin/Elektro 181 PS","price":19850,"km":48000,"year":2022,"fuel":"Hybrid","transmission":"Automatik","ps":181,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/d2/d2222b6c-b1de-4069-87e6-f54a266a5498?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"Hybrid Ultimate 224 PS","price":20950,"km":50000,"year":2022,"fuel":"Hybrid","transmission":"Automatik","ps":224,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/01/0131a198-9b90-4ecf-9a3d-72199665d71c?rule=mo-1600"},
+  {"make":"Opel","model":"Astra","variant":"AHK 1.400 kg Hybrid","price":20850,"km":49000,"year":2023,"fuel":"Hybrid","transmission":"Automatik","ps":181,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/76/765c5da1-64ef-4a5d-9b86-ee287c470d4e?rule=mo-1600"},
+  {"make":"Opel","model":"Vivaro","variant":"Lang L3 AHK 3.000 kg Werksgarantie","price":28900,"km":38000,"year":2025,"fuel":"Diesel","transmission":"Schaltgetriebe","ps":106,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/34/34ea1736-460d-43e1-8e3d-42d6141195c9?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"Neuwertig Vollausstattung Diesel","price":23500,"km":22000,"year":2023,"fuel":"Diesel","transmission":"Automatik","ps":131,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/3b/3b93b436-924c-4aeb-bd1f-8687f77c4c9a?rule=mo-1600"},
+  {"make":"Opel","model":"Grandland","variant":"Hybrid 181 PS wenig km","price":17950,"km":30000,"year":2021,"fuel":"Hybrid","transmission":"Automatik","ps":181,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/67/6751527a-1523-43a6-b5ec-4f92018244da?rule=mo-1600"},
+  {"make":"Opel","model":"Astra","variant":"Ultimate Vollausstattung SSD AHK Hybrid","price":24750,"km":34000,"year":2023,"fuel":"Hybrid","transmission":"Automatik","ps":181,"badge":"Gebraucht","url":"https://home.mobile.de/AH-PUFAHL","imageUrl":"https://img.classistatic.de/api/v1/mo-prod/images/6b/6b0c93a6-192f-497e-b53c-0d46a6fe3a30?rule=mo-1600"}
 ];
 
   const fmt = n => Number(n).toLocaleString('de-DE');
@@ -1849,11 +1944,12 @@ window.goToVehicleDetail = function (card) {
     const url   = v.url || MOBILE_URL;
     const art   = document.createElement('article');
     art.className = 'vehicle-card';
-    art.dataset.type  = type;
-    art.dataset.price = v.price || 0;
-    art.dataset.km    = v.km    || 0;
-    art.dataset.jahr  = v.year  || 0;
-    art.style.cursor  = 'pointer';
+    art.dataset.type    = type;
+    art.dataset.price   = v.price || 0;
+    art.dataset.km      = v.km    || 0;
+    art.dataset.jahr    = v.year  || 0;
+    art.dataset.vehicle = JSON.stringify(v);
+    art.style.cursor    = 'pointer';
     art.addEventListener('click', function(e) {
       if (e.target.closest('a, button')) return;
       window.goToVehicleDetail(art);
@@ -1882,7 +1978,7 @@ window.goToVehicleDetail = function (card) {
             <span class="pre">Preis</span>
             <span class="val">${v.price ? fmt(v.price) + ' \u20ac' : 'Auf Anfrage'}</span>
           </div>
-          <a class="btn btn-mobile btn-sm" href="${url}" target="_blank" rel="noopener noreferrer">Auf mobile.de \u2197</a>
+          <span class="btn btn-ghost btn-sm">Details \u2192</span>
         </div>
       </div>`;
     return art;
@@ -1892,43 +1988,53 @@ window.goToVehicleDetail = function (card) {
     grid.innerHTML = '';
     listings.forEach(v => grid.appendChild(makeCard(v)));
 
-    const countEl = document.querySelector('[data-result-count]');
-    const chips   = document.querySelectorAll('.chip-btn[data-filter]');
-    const sortSel = document.querySelector('[data-sort]');
-    const noRes   = document.querySelector('[data-no-results]');
-    let active = 'alle';
+    const countEl  = document.querySelector('[data-result-count]');
+    const chips    = document.querySelectorAll('.chip-btn[data-filter]');
+    const sortSel  = document.querySelector('[data-sort]');
+    const noRes    = document.querySelector('[data-no-results]');
+    const showAllBtn = document.getElementById('show-all-btn');
+    let active   = 'alle';
+    let expanded = false;
 
     const applyFilters = () => {
       const cards = Array.from(grid.querySelectorAll('[data-type]'));
-      let shown = 0;
-      cards.forEach(c => {
-        const ok = active === 'alle' || c.dataset.type === active;
-        c.style.display = ok ? '' : 'none';
-        if (ok) shown++;
-      });
       if (sortSel) {
-        const vis = cards.filter(c => c.style.display !== 'none');
         const mode = sortSel.value;
-        vis.sort((a, b) => {
+        cards.sort((a, b) => {
           if (mode === 'preis-auf') return +a.dataset.price - +b.dataset.price;
           if (mode === 'preis-ab')  return +b.dataset.price - +a.dataset.price;
           if (mode === 'km-auf')    return +a.dataset.km - +b.dataset.km;
           if (mode === 'jahr-ab')   return +b.dataset.jahr - +a.dataset.jahr;
           return 0;
         });
-        vis.forEach(c => grid.appendChild(c));
+        cards.forEach(c => grid.appendChild(c));
       }
+      let shown = 0, matchIdx = 0;
+      cards.forEach(c => {
+        const typeOk = active === 'alle' || c.dataset.type === active;
+        if (!typeOk) { c.style.display = 'none'; return; }
+        matchIdx++;
+        if (!expanded && matchIdx > 9) {
+          c.style.display = 'none';
+        } else {
+          c.style.display = '';
+          shown++;
+        }
+      });
       if (countEl) countEl.textContent = shown;
-      if (noRes) noRes.style.display = shown === 0 ? '' : 'none';
+      if (noRes) noRes.style.display = matchIdx === 0 ? '' : 'none';
+      if (showAllBtn) showAllBtn.style.display = (!expanded && matchIdx > 9) ? '' : 'none';
     };
 
     chips.forEach(chip => chip.addEventListener('click', () => {
       chips.forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       active = chip.dataset.filter;
+      expanded = true;
       applyFilters();
     }));
-    if (sortSel) sortSel.addEventListener('change', applyFilters);
+    if (sortSel) sortSel.addEventListener('change', () => { expanded = true; applyFilters(); });
+    if (showAllBtn) showAllBtn.querySelector('button').addEventListener('click', () => { expanded = true; applyFilters(); });
     applyFilters();
   }
 
@@ -1966,17 +2072,13 @@ window.goToVehicleDetail = function (card) {
     }
   }
 
-  async function init() {
-    try {
-      const listings = await fetchLive();
-      renderListings(listings);
-    } catch (e) {
-      console.info('Live fetch unavailable, using cached inventory:', e.message);
-      renderListings(FALLBACK);
-    }
+  function init() {
+    grid = document.querySelector('[data-vehicle-grid]');
+    if (!grid) return;
+    renderListings(FALLBACK);
   }
 
-  init();
+  document.addEventListener('DOMContentLoaded', init);
 })();
 
 </script>
@@ -1995,7 +2097,7 @@ window.goToVehicleDetail = function (card) {
   </div>
 </header>
 <div class="mobile-menu" id="mobileMenu">
-  <a href="index.html"><span class="n">01</span>Startseite</a><a href="fahrzeuge.html" class="active" aria-current="page"><span class="n">02</span>Gebrauchtwagen</a><a href="neuwagen.html"><span class="n">03</span>Neuwagen</a><a href="klassik-cars.html"><span class="n">04</span>Klassik Cars</a><a href="service.html"><span class="n">05</span>Service</a><a href="ueber-uns.html"><span class="n">06</span>Über uns</a><a href="stellenangebote.html"><span class="n">07</span>Stellenangebote</a><a href="kontakt.html"><span class="n">08</span>Kontakt</a>
+  <a href="index.html">Startseite</a><a href="fahrzeuge.html" class="active" aria-current="page">Gebrauchtwagen</a><a href="neuwagen.html">Neuwagen</a><a href="klassik-cars.html">Klassik Cars</a><a href="service.html">Service</a><a href="ueber-uns.html">Über uns</a><a href="stellenangebote.html">Stellenangebote</a><a href="jubilaeum.html">100 Jahre</a><a href="kontakt.html">Kontakt</a>
   <a class="btn btn-gold" href="kontakt.html">Termin vereinbaren</a>
 </div>
 
@@ -2049,208 +2151,15 @@ window.goToVehicleDetail = function (card) {
 
       <div class="vehicle-grid" data-vehicle-grid id="vehicleGridTop">
 
-<article class="vehicle-card" data-type="suv" data-price="15980" data-km="77000" data-jahr="2018" data-url="https://suchen.mobile.de/fahrzeuge/details.html?id=449422017">
-  <div class="vehicle-media">
-    <img class="vehicle-photo" src="https://img.classistatic.de/api/v1/mo-prod/images/ff/ff8c3cb8-7473-4def-9f7b-df36d213511e?rule=mo-1600" alt="Mercedes-Benz GLA 180" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="vehicle-placeholder" style="display:none"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="14" width="52" height="36" rx="4"/><circle cx="20" cy="30" r="6"/><path d="M6 42 22 26l12 12 10-8 18 12"/></svg><span>CAR IMAGE<br>PLACEHOLDER</span></div>
-  </div>
-  <div class="vehicle-body">
-    <h3 class="vehicle-name">Mercedes-Benz GLA 180</h3>
-    <div class="vehicle-badges"><span class="vehicle-badge-pill">Kamera</span><span class="vehicle-badge-pill">sehr gepflegt</span></div>
-    <div class="vehicle-divider"></div>
-    <div class="spec-row">
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/></svg><span class="spec-val">77.000 km</span><span class="spec-lbl">Kilometerstand</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span class="spec-val">122 PS</span><span class="spec-lbl">Leistung</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="spec-val">Benzin</span><span class="spec-lbl">Kraftstoff</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><circle cx="12" cy="17" r="2.2"/><path d="M7.5 21h9"/></svg><span class="spec-val">Schaltgetriebe</span><span class="spec-lbl">Getriebe</span></div>
-    </div>
-    <div class="vehicle-divider"></div>
-    <div class="vehicle-foot">
-      <div class="price"><span class="pre">PREIS</span><span class="val">15.980 &#8364;</span></div>
-      <a class="btn-vehicle" href="https://suchen.mobile.de/fahrzeuge/details.html?id=449422017" target="_blank" rel="noopener noreferrer">AUF MOBILE.DE &#x2197;</a>
-    </div>
-  </div>
-</article>
-<article class="vehicle-card" data-type="suv" data-price="23400" data-km="49000" data-jahr="2023" data-url="https://suchen.mobile.de/fahrzeuge/details.html?id=456265145">
-  <div class="vehicle-media">
-    <img class="vehicle-photo" src="https://img.classistatic.de/api/v1/mo-prod/images/dd/dd466b95-2198-4115-b7a3-fbe2794ba061?rule=mo-1600" alt="Audi Q2" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="vehicle-placeholder" style="display:none"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="14" width="52" height="36" rx="4"/><circle cx="20" cy="30" r="6"/><path d="M6 42 22 26l12 12 10-8 18 12"/></svg><span>CAR IMAGE<br>PLACEHOLDER</span></div>
-  </div>
-  <div class="vehicle-body">
-    <h3 class="vehicle-name">Audi Q2</h3>
-    <div class="vehicle-badges"><span class="vehicle-badge-pill">top Ausstattung</span><span class="vehicle-badge-pill">Automatik</span><span class="vehicle-badge-pill">Kamera</span></div>
-    <div class="vehicle-divider"></div>
-    <div class="spec-row">
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/></svg><span class="spec-val">49.000 km</span><span class="spec-lbl">Kilometerstand</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span class="spec-val">150 PS</span><span class="spec-lbl">Leistung</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="spec-val">Benzin</span><span class="spec-lbl">Kraftstoff</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><circle cx="12" cy="17" r="2.2"/><path d="M7.5 21h9"/></svg><span class="spec-val">Automatik</span><span class="spec-lbl">Getriebe</span></div>
-    </div>
-    <div class="vehicle-divider"></div>
-    <div class="vehicle-foot">
-      <div class="price"><span class="pre">PREIS</span><span class="val">23.400 &#8364;</span></div>
-      <a class="btn-vehicle" href="https://suchen.mobile.de/fahrzeuge/details.html?id=456265145" target="_blank" rel="noopener noreferrer">AUF MOBILE.DE &#x2197;</a>
-    </div>
-  </div>
-</article>
-<article class="vehicle-card" data-type="suv" data-price="22900" data-km="60000" data-jahr="2019" data-url="https://suchen.mobile.de/fahrzeuge/details.html?id=455287232">
-  <div class="vehicle-media">
-    <img class="vehicle-photo" src="https://img.classistatic.de/api/v1/mo-prod/images/a9/a9862cf7-cd6d-49d4-9ff3-2c0e5f1db5e9?rule=mo-1600" alt="Land Rover Discovery Sport" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="vehicle-placeholder" style="display:none"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="14" width="52" height="36" rx="4"/><circle cx="20" cy="30" r="6"/><path d="M6 42 22 26l12 12 10-8 18 12"/></svg><span>CAR IMAGE<br>PLACEHOLDER</span></div>
-  </div>
-  <div class="vehicle-body">
-    <h3 class="vehicle-name">Land Rover Discovery Sport</h3>
-    <div class="vehicle-badges"><span class="vehicle-badge-pill">alle Extras</span><span class="vehicle-badge-pill">tolles Design</span></div>
-    <div class="vehicle-divider"></div>
-    <div class="spec-row">
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/></svg><span class="spec-val">60.000 km</span><span class="spec-lbl">Kilometerstand</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span class="spec-val">150 PS</span><span class="spec-lbl">Leistung</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="spec-val">Diesel</span><span class="spec-lbl">Kraftstoff</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><circle cx="12" cy="17" r="2.2"/><path d="M7.5 21h9"/></svg><span class="spec-val">Automatik</span><span class="spec-lbl">Getriebe</span></div>
-    </div>
-    <div class="vehicle-divider"></div>
-    <div class="vehicle-foot">
-      <div class="price"><span class="pre">PREIS</span><span class="val">22.900 &#8364;</span></div>
-      <a class="btn-vehicle" href="https://suchen.mobile.de/fahrzeuge/details.html?id=455287232" target="_blank" rel="noopener noreferrer">AUF MOBILE.DE &#x2197;</a>
-    </div>
-  </div>
-</article>
-<article class="vehicle-card" data-type="suv" data-price="21650" data-km="79000" data-jahr="2017" data-url="https://suchen.mobile.de/fahrzeuge/details.html?id=456871477">
-  <div class="vehicle-media">
-    <img class="vehicle-photo" src="https://img.classistatic.de/api/v1/mo-prod/images/38/38c5236f-3a96-4b69-aeb3-495ea042741c?rule=mo-1600" alt="Volvo XC60" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="vehicle-placeholder" style="display:none"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="14" width="52" height="36" rx="4"/><circle cx="20" cy="30" r="6"/><path d="M6 42 22 26l12 12 10-8 18 12"/></svg><span>CAR IMAGE<br>PLACEHOLDER</span></div>
-  </div>
-  <div class="vehicle-body">
-    <h3 class="vehicle-name">Volvo XC60</h3>
-    <div class="vehicle-badges"><span class="vehicle-badge-pill">AHK 1.800 kg</span><span class="vehicle-badge-pill">wenig km</span></div>
-    <div class="vehicle-divider"></div>
-    <div class="spec-row">
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/></svg><span class="spec-val">79.000 km</span><span class="spec-lbl">Kilometerstand</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span class="spec-val">190 PS</span><span class="spec-lbl">Leistung</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="spec-val">Diesel</span><span class="spec-lbl">Kraftstoff</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><circle cx="12" cy="17" r="2.2"/><path d="M7.5 21h9"/></svg><span class="spec-val">Automatik</span><span class="spec-lbl">Getriebe</span></div>
-    </div>
-    <div class="vehicle-divider"></div>
-    <div class="vehicle-foot">
-      <div class="price"><span class="pre">PREIS</span><span class="val">21.650 &#8364;</span></div>
-      <a class="btn-vehicle" href="https://suchen.mobile.de/fahrzeuge/details.html?id=456871477" target="_blank" rel="noopener noreferrer">AUF MOBILE.DE &#x2197;</a>
-    </div>
-  </div>
-</article>
-<article class="vehicle-card" data-type="suv" data-price="23300" data-km="43000" data-jahr="2020" data-url="https://suchen.mobile.de/fahrzeuge/details.html?id=455010394">
-  <div class="vehicle-media">
-    <img class="vehicle-photo" src="https://img.classistatic.de/api/v1/mo-prod/images/c4/c4ba5cac-e086-4b01-8332-f4e255cd2bf7?rule=mo-1600" alt="Land Rover Range Rover Evoque" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="vehicle-placeholder" style="display:none"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="14" width="52" height="36" rx="4"/><circle cx="20" cy="30" r="6"/><path d="M6 42 22 26l12 12 10-8 18 12"/></svg><span>CAR IMAGE<br>PLACEHOLDER</span></div>
-  </div>
-  <div class="vehicle-body">
-    <h3 class="vehicle-name">Land Rover Range Rover Evoque</h3>
-    <div class="vehicle-badges"><span class="vehicle-badge-pill">wenig km</span><span class="vehicle-badge-pill">top Ausstattung</span></div>
-    <div class="vehicle-divider"></div>
-    <div class="spec-row">
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/></svg><span class="spec-val">43.000 km</span><span class="spec-lbl">Kilometerstand</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span class="spec-val">150 PS</span><span class="spec-lbl">Leistung</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="spec-val">Diesel</span><span class="spec-lbl">Kraftstoff</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><circle cx="12" cy="17" r="2.2"/><path d="M7.5 21h9"/></svg><span class="spec-val">Automatik</span><span class="spec-lbl">Getriebe</span></div>
-    </div>
-    <div class="vehicle-divider"></div>
-    <div class="vehicle-foot">
-      <div class="price"><span class="pre">PREIS</span><span class="val">23.300 &#8364;</span></div>
-      <a class="btn-vehicle" href="https://suchen.mobile.de/fahrzeuge/details.html?id=455010394" target="_blank" rel="noopener noreferrer">AUF MOBILE.DE &#x2197;</a>
-    </div>
-  </div>
-</article>
-<article class="vehicle-card" data-type="limousine" data-price="29900" data-km="46000" data-jahr="2022" data-url="https://suchen.mobile.de/fahrzeuge/details.html?id=457924840">
-  <div class="vehicle-media">
-    <img class="vehicle-photo" src="https://img.classistatic.de/api/v1/mo-prod/images/94/9456fd37-d6e5-460d-bb9e-4e36d42a88c5?rule=mo-1600" alt="Opel Insignia GSI" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="vehicle-placeholder" style="display:none"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="14" width="52" height="36" rx="4"/><circle cx="20" cy="30" r="6"/><path d="M6 42 22 26l12 12 10-8 18 12"/></svg><span>CAR IMAGE<br>PLACEHOLDER</span></div>
-  </div>
-  <div class="vehicle-body">
-    <h3 class="vehicle-name">Opel Insignia GSI</h3>
-    <div class="vehicle-badges"><span class="vehicle-badge-pill">Vollausstattung</span><span class="vehicle-badge-pill">230 PS</span></div>
-    <div class="vehicle-divider"></div>
-    <div class="spec-row">
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/></svg><span class="spec-val">46.000 km</span><span class="spec-lbl">Kilometerstand</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span class="spec-val">230 PS</span><span class="spec-lbl">Leistung</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="spec-val">Benzin</span><span class="spec-lbl">Kraftstoff</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><circle cx="12" cy="17" r="2.2"/><path d="M7.5 21h9"/></svg><span class="spec-val">Automatik</span><span class="spec-lbl">Getriebe</span></div>
-    </div>
-    <div class="vehicle-divider"></div>
-    <div class="vehicle-foot">
-      <div class="price"><span class="pre">PREIS</span><span class="val">29.900 &#8364;</span></div>
-      <a class="btn-vehicle" href="https://suchen.mobile.de/fahrzeuge/details.html?id=457924840" target="_blank" rel="noopener noreferrer">AUF MOBILE.DE &#x2197;</a>
-    </div>
-  </div>
-</article>
-<article class="vehicle-card" data-type="van" data-price="15900" data-km="77000" data-jahr="2020" data-url="https://suchen.mobile.de/fahrzeuge/details.html?id=449426029">
-  <div class="vehicle-media">
-    <img class="vehicle-photo" src="https://img.classistatic.de/api/v1/mo-prod/images/1f/1fa3df7e-1842-40f2-ad65-0099b659c1f6?rule=mo-1600" alt="BMW 225 Active Tourer" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="vehicle-placeholder" style="display:none"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="14" width="52" height="36" rx="4"/><circle cx="20" cy="30" r="6"/><path d="M6 42 22 26l12 12 10-8 18 12"/></svg><span>CAR IMAGE<br>PLACEHOLDER</span></div>
-  </div>
-  <div class="vehicle-body">
-    <h3 class="vehicle-name">BMW 225 Active Tourer</h3>
-    <div class="vehicle-badges"><span class="vehicle-badge-pill">sehr gepflegt</span><span class="vehicle-badge-pill">reduziert</span></div>
-    <div class="vehicle-divider"></div>
-    <div class="spec-row">
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/></svg><span class="spec-val">77.000 km</span><span class="spec-lbl">Kilometerstand</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span class="spec-val">136 PS</span><span class="spec-lbl">Leistung</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="spec-val">Benzin</span><span class="spec-lbl">Kraftstoff</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><circle cx="12" cy="17" r="2.2"/><path d="M7.5 21h9"/></svg><span class="spec-val">Automatik</span><span class="spec-lbl">Getriebe</span></div>
-    </div>
-    <div class="vehicle-divider"></div>
-    <div class="vehicle-foot">
-      <div class="price"><span class="pre">PREIS</span><span class="val">15.900 &#8364;</span></div>
-      <a class="btn-vehicle" href="https://suchen.mobile.de/fahrzeuge/details.html?id=449426029" target="_blank" rel="noopener noreferrer">AUF MOBILE.DE &#x2197;</a>
-    </div>
-  </div>
-</article>
-<article class="vehicle-card" data-type="van" data-price="19550" data-km="60000" data-jahr="2018" data-url="https://suchen.mobile.de/fahrzeuge/details.html?id=457346741">
-  <div class="vehicle-media">
-    <img class="vehicle-photo" src="https://img.classistatic.de/api/v1/mo-prod/images/34/341efdd6-2eb8-4cb3-b2f4-401fe512f811?rule=mo-1600" alt="Ford S-Max" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="vehicle-placeholder" style="display:none"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="14" width="52" height="36" rx="4"/><circle cx="20" cy="30" r="6"/><path d="M6 42 22 26l12 12 10-8 18 12"/></svg><span>CAR IMAGE<br>PLACEHOLDER</span></div>
-  </div>
-  <div class="vehicle-body">
-    <h3 class="vehicle-name">Ford S-Max</h3>
-    <div class="vehicle-badges"><span class="vehicle-badge-pill">7 Sitze</span><span class="vehicle-badge-pill">LED</span><span class="vehicle-badge-pill">viel Platz</span></div>
-    <div class="vehicle-divider"></div>
-    <div class="spec-row">
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/></svg><span class="spec-val">60.000 km</span><span class="spec-lbl">Kilometerstand</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span class="spec-val">160 PS</span><span class="spec-lbl">Leistung</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="spec-val">Benzin</span><span class="spec-lbl">Kraftstoff</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><circle cx="12" cy="17" r="2.2"/><path d="M7.5 21h9"/></svg><span class="spec-val">Automatik</span><span class="spec-lbl">Getriebe</span></div>
-    </div>
-    <div class="vehicle-divider"></div>
-    <div class="vehicle-foot">
-      <div class="price"><span class="pre">PREIS</span><span class="val">19.550 &#8364;</span></div>
-      <a class="btn-vehicle" href="https://suchen.mobile.de/fahrzeuge/details.html?id=457346741" target="_blank" rel="noopener noreferrer">AUF MOBILE.DE &#x2197;</a>
-    </div>
-  </div>
-</article>
-<article class="vehicle-card" data-type="suv" data-price="19500" data-km="39000" data-jahr="2021" data-url="https://suchen.mobile.de/fahrzeuge/details.html?id=450000528">
-  <div class="vehicle-media">
-    <img class="vehicle-photo" src="https://img.classistatic.de/api/v1/mo-prod/images/11/11b95c16-a088-4272-a777-6d9473e0a3f7?rule=mo-1600" alt="Opel Grandland" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="vehicle-placeholder" style="display:none"><svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><rect x="6" y="14" width="52" height="36" rx="4"/><circle cx="20" cy="30" r="6"/><path d="M6 42 22 26l12 12 10-8 18 12"/></svg><span>CAR IMAGE<br>PLACEHOLDER</span></div>
-  </div>
-  <div class="vehicle-body">
-    <h3 class="vehicle-name">Opel Grandland</h3>
-    <div class="vehicle-badges"><span class="vehicle-badge-pill">Facelift</span><span class="vehicle-badge-pill">super gepflegt</span></div>
-    <div class="vehicle-divider"></div>
-    <div class="spec-row">
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.34 19a10 10 0 1 1 17.32 0"/><path d="m12 14 4-4"/></svg><span class="spec-val">39.000 km</span><span class="spec-lbl">Kilometerstand</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span class="spec-val">181 PS</span><span class="spec-lbl">Leistung</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.5-4 6.5S5 13 5 15a7 7 0 0 0 7 7z"/></svg><span class="spec-val">Benzin</span><span class="spec-lbl">Kraftstoff</span></div>
-      <div class="spec-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10"/><circle cx="12" cy="17" r="2.2"/><path d="M7.5 21h9"/></svg><span class="spec-val">Automatik</span><span class="spec-lbl">Getriebe</span></div>
-    </div>
-    <div class="vehicle-divider"></div>
-    <div class="vehicle-foot">
-      <div class="price"><span class="pre">PREIS</span><span class="val">19.500 &#8364;</span></div>
-      <a class="btn-vehicle" href="https://suchen.mobile.de/fahrzeuge/details.html?id=450000528" target="_blank" rel="noopener noreferrer">AUF MOBILE.DE &#x2197;</a>
-    </div>
-  </div>
-</article>
+
 
       </div>
 
       <div class="no-results" data-no-results style="display:none">Keine Fahrzeuge in dieser Kategorie. Bitte wählen Sie einen anderen Filter.</div>
+
+      <div id="show-all-btn" style="display:none;text-align:center;margin:2.5rem 0">
+        <button class="btn btn-gold" style="padding:.8rem 2.8rem;font-size:.88rem;letter-spacing:.06em">Alle Fahrzeuge ansehen</button>
+      </div>
 
       <div style="margin-top:2.5rem">
         <a href="#vehicleGridTop" id="seeAllOnSite"
@@ -2458,7 +2367,6 @@ window.goToVehicleDetail = function (card) {
 </main>
 
 <footer class="footer">
-  <div class="footer-ghost" aria-hidden="true">100</div>
     <div class="container">
     <div class="footer-grid">
       <div class="f-brand">
@@ -3245,21 +3153,12 @@ REGELN: Antworte in 1–4 Sätzen. Bei Terminen, Probefahrten, konkreten Preisen
   }
 
   async function callRemote(){
-    if(PF_AI_ENDPOINT){
-      const r=await fetch(PF_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({messages:history})});
-      if(!r.ok) throw new Error('worker '+r.status);
-      const d=await r.json();
-      return d.reply || (d.content&&d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n')) || null;
-    } else {
-      // Vorschau-Versuch über Claude.ai-API (nur in der Sandbox verfügbar)
-      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:KNOWLEDGE,messages:history})});
-      if(!r.ok) throw new Error('api '+r.status);
-      const d=await r.json();
-      return (d.content&&d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n')) || null;
-    }
+    if(!PF_AI_ENDPOINT) throw new Error('no endpoint');
+    const r=await fetch(PF_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:history})});
+    if(!r.ok) throw new Error('worker '+r.status);
+    const d=await r.json();
+    return d.reply || (d.content&&d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n')) || null;
   }
 
   async function ask(text){
@@ -3286,5 +3185,6 @@ REGELN: Antworte in 1–4 Sätzen. Bei Terminen, Probefahrten, konkreten Preisen
 </script>
 <!-- ═══════════════ /KI-ASSISTENT WIDGET ═══════════════ -->
 
+<script src="cookie-consent.js"></script>
 </body>
 </html>

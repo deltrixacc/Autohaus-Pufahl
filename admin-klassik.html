@@ -1,0 +1,813 @@
+﻿<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Klassik Cars — Verwaltung</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --ink: #101319;
+    --surface: #181B24;
+    --surface-2: #1D202B;
+    --line: rgba(255,255,255,.1);
+    --text: #F4F4F6;
+    --text-dim: #9494A6;
+    --gold: #C8A44A;
+    --gold-soft: rgba(200,164,74,.1);
+    --red: #e05252;
+    --green: #4cae7f;
+    --r: 10px;
+    --ff: 'Segoe UI', system-ui, sans-serif;
+  }
+  body { background: var(--ink); color: var(--text); font-family: var(--ff); min-height: 100vh; }
+
+  /* ── Layout ── */
+  .page { max-width: 860px; margin: 0 auto; padding: 2rem 1.2rem 4rem; }
+  .logo { display: flex; align-items: center; gap: .7rem; margin-bottom: 2.5rem; }
+  .logo-badge { background: var(--gold); color: #000; font-weight: 800; font-size: .75rem;
+    letter-spacing: .12em; text-transform: uppercase; padding: .35rem .7rem; border-radius: 6px; }
+  .logo-title { font-size: 1.1rem; font-weight: 600; }
+  .logo-sub { font-size: .8rem; color: var(--text-dim); }
+
+  /* ── Cards / panels ── */
+  .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--r);
+    padding: 2rem; margin-bottom: 1.5rem; }
+  .panel-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 1.5rem;
+    padding-bottom: .75rem; border-bottom: 1px solid var(--line); }
+
+  /* ── Form ── */
+  .field { margin-bottom: 1.1rem; }
+  label { display: block; font-size: .78rem; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--text-dim); margin-bottom: .4rem; }
+  input, textarea, select {
+    width: 100%; background: var(--surface-2); color: var(--text);
+    border: 1px solid var(--line); border-radius: 8px; padding: .65rem .85rem;
+    font: inherit; font-size: .95rem; outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, textarea:focus, select:focus { border-color: var(--gold); }
+  textarea { resize: vertical; min-height: 90px; }
+  .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media(max-width:520px){ .row-2 { grid-template-columns: 1fr; } }
+
+  /* ── Buttons ── */
+  .btn { display: inline-flex; align-items: center; gap: .45rem; padding: .65rem 1.4rem;
+    border: none; border-radius: 8px; font: inherit; font-size: .9rem; font-weight: 600;
+    cursor: pointer; transition: opacity .2s, transform .15s; }
+  .btn:hover { opacity: .88; transform: translateY(-1px); }
+  .btn:active { transform: none; }
+  .btn-gold { background: var(--gold); color: #000; }
+  .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid var(--line); }
+  .btn-danger { background: var(--red); color: #fff; padding: .4rem .85rem; font-size: .8rem; }
+  .btn-edit { background: transparent; color: var(--gold); border: 1px solid var(--gold); padding: .4rem .85rem; font-size: .8rem; }
+  .btn-block { width: 100%; justify-content: center; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+
+  /* ── Car list ── */
+  .car-list { display: flex; flex-direction: column; gap: .8rem; }
+  .car-row { display: flex; align-items: center; gap: 1rem; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 8px; padding: .85rem 1rem; }
+  .car-thumb { width: 72px; height: 54px; object-fit: cover; border-radius: 6px;
+    background: var(--ink); flex-shrink: 0; }
+  .car-thumb-placeholder { width: 72px; height: 54px; border-radius: 6px; background: var(--ink);
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; opacity: .4; font-size: 1.5rem; }
+  .car-info { flex: 1; min-width: 0; }
+  .car-name { font-weight: 700; font-size: .95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .car-meta { font-size: .78rem; color: var(--text-dim); margin-top: .2rem; }
+  .car-price { font-size: .85rem; color: var(--gold); font-weight: 600; white-space: nowrap; }
+
+  /* ── Alerts ── */
+  .alert { padding: .75rem 1rem; border-radius: 8px; font-size: .9rem; margin-bottom: 1rem; }
+  .alert-error { background: rgba(224,82,82,.15); border: 1px solid rgba(224,82,82,.35); color: #f88; }
+  .alert-success { background: rgba(76,174,127,.15); border: 1px solid rgba(76,174,127,.35); color: #6de0a8; }
+
+  /* ── Config note ── */
+  .cfg-note { background: rgba(200,164,74,.08); border: 1px solid rgba(200,164,74,.25);
+    border-radius: var(--r); padding: 1.2rem 1.4rem; margin-bottom: 1.5rem; font-size: .88rem; line-height: 1.6; }
+  .cfg-note strong { color: var(--gold); }
+  .cfg-note code { background: rgba(255,255,255,.07); padding: .1em .4em; border-radius: 4px; font-size: .85em; }
+  .cfg-note ul { padding-left: 1.2rem; margin-top: .5rem; }
+  .cfg-note li { margin-bottom: .25rem; }
+
+  /* ── States ── */
+  .hidden { display: none !important; }
+  .empty-state { text-align: center; color: var(--text-dim); padding: 2rem; font-size: .95rem; }
+
+  /* ── Spinner ── */
+  .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.2);
+    border-top-color: var(--gold); border-radius: 50%; animation: spin .7s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Logo -->
+  <div class="logo">
+    <div class="logo-badge">AP</div>
+    <div>
+      <div class="logo-title">Autohaus Pufahl</div>
+      <div class="logo-sub">Klassik Cars — Verwaltung</div>
+    </div>
+  </div>
+
+  <!-- ── SETUP INSTRUCTIONS (shown when worker URL not configured) ── -->
+  <div id="setupPanel" class="cfg-note hidden">
+    <strong>Einrichtung erforderlich</strong><br>
+    Bitte geben Sie unten die URL Ihres Cloudflare Workers ein, dann klicken Sie auf „Speichern".<br>
+    Die Worker-URL sieht so aus: <code>https://pufahl-inventory.XXXX.workers.dev</code><br><br>
+    <strong>Einmalige Einrichtung (einmalig, vom Administrator):</strong>
+    <ul>
+      <li>In der Worker-Konsole: <code>npx wrangler secret put KLASSIK_PASSWORD</code></li>
+      <li>Passwort eingeben → Enter. Fertig.</li>
+      <li>Optional Benutzernamen ändern: <code>npx wrangler secret put KLASSIK_USER</code> (Standard: pufahl)</li>
+    </ul>
+  </div>
+
+  <!-- ── WORKER URL CONFIG ── -->
+  <div id="configPanel" class="panel">
+    <div class="panel-title">Worker-Adresse</div>
+    <div class="field">
+      <label>Cloudflare Worker URL</label>
+      <input id="workerUrl" type="url" placeholder="https://pufahl-inventory.xxxx.workers.dev">
+    </div>
+    <button class="btn btn-gold" onclick="saveWorkerUrl()">Speichern & weiter</button>
+  </div>
+
+  <!-- ── LOGIN ── -->
+  <div id="loginPanel" class="panel hidden">
+    <div class="panel-title">Anmelden</div>
+    <div id="loginAlert" class="hidden"></div>
+    <div class="field">
+      <label>Benutzername</label>
+      <input id="loginUser" type="text" value="pufahl" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Passwort</label>
+      <input id="loginPass" type="password" autocomplete="current-password" placeholder="••••••••">
+    </div>
+    <button class="btn btn-gold btn-block" id="loginBtn" onclick="doLogin()">Anmelden</button>
+  </div>
+
+  <!-- ── MAIN APP (after login) ── -->
+  <div id="appPanel" class="hidden">
+
+    <!-- Header row -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;flex-wrap:wrap;gap:.75rem;">
+      <div>
+        <strong>Angemeldet</strong>
+        <span id="userDisplay" style="color:var(--text-dim);font-size:.85rem;margin-left:.5rem;"></span>
+      </div>
+      <button class="btn btn-ghost" onclick="doLogout()">Abmelden</button>
+    </div>
+
+    <!-- Add car form -->
+    <div class="panel">
+      <div class="panel-title" id="formTitle">Neues Fahrzeug hinzufügen</div>
+      <div id="addAlert" class="hidden"></div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Fahrzeugname *</label>
+          <input id="carName" type="text" placeholder="z.B. Opel Kadett C Coupé">
+        </div>
+        <div class="field">
+          <label>Baujahr</label>
+          <input id="carYear" type="text" placeholder="z.B. 1978">
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Preis</label>
+          <input id="carPrice" type="text" placeholder="z.B. 8.500 € VB oder Auf Anfrage">
+        </div>
+        <div class="field">
+          <label>Status</label>
+          <select id="carStatus">
+            <option value="Zu verkaufen">Zu verkaufen</option>
+            <option value="Nicht verkäuflich — Ausstellungsstück">Nicht verkäuflich — Ausstellungsstück</option>
+            <option value="Verkauft">Verkauft</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Marke</label>
+          <input id="carMarke" type="text" placeholder="z.B. Opel">
+        </div>
+        <div class="field">
+          <label>Karosserie</label>
+          <input id="carKarosserie" type="text" placeholder="z.B. Coupé">
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div class="field">
+          <label>Epoche</label>
+          <input id="carEpoche" type="text" placeholder="z.B. 1970er">
+        </div>
+        <div class="field">
+          <label>Herkunft</label>
+          <input id="carHerkunft" type="text" placeholder="z.B. Deutschland">
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Kurzbeschreibung <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">(kleiner Text im Banner oben)</span></label>
+        <input id="carHeroText" type="text" placeholder="z.B. Ein Stück Automobilgeschichte aus den 1970ern.">
+      </div>
+
+      <div class="field">
+        <label>Beschreibung <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">(langer Text unter dem Foto)</span></label>
+        <textarea id="carDesc" placeholder="Ausführliche Beschreibung des Fahrzeugs…"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Fotos</label>
+        <div id="imagePickerArea" style="border:2px dashed var(--line);border-radius:8px;padding:1.2rem;text-align:center;cursor:pointer;transition:border-color .2s;" onclick="document.getElementById('carImageFile').click()">
+          <div id="imagePickerPlaceholder" style="color:var(--text-dim);font-size:.9rem;">
+            📷 Fotos auswählen (klicken oder hierher ziehen, mehrere möglich)
+          </div>
+          <div id="imagePreviews" style="display:flex;flex-wrap:wrap;gap:.5rem;justify-content:center;margin-top:.5rem;"></div>
+        </div>
+        <input id="carImageFile" type="file" accept="image/*" multiple style="display:none" onchange="handleImageFiles(this)">
+        <input id="carImage" type="hidden">
+      </div>
+
+      <div class="field">
+        <label>Detail-Link (optional)</label>
+        <input id="carLink" type="text" placeholder="z.B. ascona-b-sport.html oder leer lassen">
+      </div>
+
+      <div class="field">
+        <label>Weitere Angaben <span style="color:var(--text-dim);font-weight:400;text-transform:none;letter-spacing:0">(beliebige zusätzliche Felder)</span></label>
+        <div id="factsContainer" style="display:flex;flex-direction:column;gap:.5rem;margin-bottom:.6rem"></div>
+        <button type="button" class="btn btn-ghost" style="font-size:.8rem;padding:.4rem .9rem" onclick="addFactRow()">+ Angabe hinzufügen</button>
+      </div>
+
+      <button class="btn btn-gold" id="addBtn" onclick="addCar()">Fahrzeug hinzufügen</button>
+      <button class="btn btn-ghost hidden" id="cancelEditBtn" onclick="cancelEdit()" style="margin-left:.6rem">Abbrechen</button>
+    </div>
+
+    <!-- Car list -->
+    <div class="panel">
+      <div class="panel-title">
+        <span>Aktuelle Fahrzeuge <span id="carCount" style="font-size:.8rem;font-weight:400;color:var(--text-dim);margin-left:.4rem;"></span></span>
+      </div>
+      <div id="carList" class="car-list">
+        <div class="empty-state">Wird geladen…</div>
+      </div>
+    </div>
+
+  </div><!-- /appPanel -->
+
+</div><!-- /page -->
+
+<script>
+const STORAGE_URL_KEY  = 'ap_klassik_worker_url';
+const STORAGE_AUTH_KEY = 'ap_klassik_auth_token';
+const STORAGE_USER_KEY = 'ap_klassik_username';
+
+let workerUrl = '';
+let authToken  = '';
+let editingCarId = null;
+let carDataCache = [];
+
+/* ── Init ── */
+window.addEventListener('DOMContentLoaded', function () {
+  workerUrl = localStorage.getItem(STORAGE_URL_KEY) || '';
+  authToken  = sessionStorage.getItem(STORAGE_AUTH_KEY) || '';
+
+  if (!workerUrl) {
+    show('setupPanel');
+    show('configPanel');
+    return;
+  }
+
+  document.getElementById('workerUrl').value = workerUrl;
+
+  if (authToken) {
+    showApp();
+  } else {
+    show('loginPanel');
+  }
+});
+
+/* ── Worker URL config ── */
+function saveWorkerUrl() {
+  const val = document.getElementById('workerUrl').value.trim().replace(/\/$/, '');
+  if (!val || !val.startsWith('http')) { alert('Bitte eine gültige URL eingeben.'); return; }
+  workerUrl = val;
+  localStorage.setItem(STORAGE_URL_KEY, workerUrl);
+  hide('configPanel');
+  hide('setupPanel');
+  show('loginPanel');
+}
+
+/* ── Login ── */
+async function doLogin() {
+  const btn  = document.getElementById('loginBtn');
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  if (!user || !pass) { showAlert('loginAlert', 'error', 'Bitte Benutzername und Passwort eingeben.'); return; }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Anmelden…';
+  clearAlert('loginAlert');
+
+  try {
+    const res  = await fetch(workerUrl + '/api/klassik-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: user, password: pass }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Fehler beim Anmelden');
+    authToken = data.token;
+    sessionStorage.setItem(STORAGE_AUTH_KEY, authToken);
+    sessionStorage.setItem(STORAGE_USER_KEY, user);
+    hide('loginPanel');
+    showApp();
+  } catch (e) {
+    showAlert('loginAlert', 'error', e.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Anmelden';
+  }
+}
+
+function doLogout() {
+  authToken = '';
+  sessionStorage.removeItem(STORAGE_AUTH_KEY);
+  sessionStorage.removeItem(STORAGE_USER_KEY);
+  hide('appPanel');
+  document.getElementById('loginPass').value = '';
+  show('loginPanel');
+}
+
+/* ── App ── */
+function showApp() {
+  const user = sessionStorage.getItem(STORAGE_USER_KEY) || '';
+  document.getElementById('userDisplay').textContent = user;
+  show('appPanel');
+  loadCars();
+}
+
+/* ── Load cars ── */
+async function loadCars() {
+  const list = document.getElementById('carList');
+  list.innerHTML = '<div class="empty-state">Wird geladen…</div>';
+  try {
+    const res  = await fetch(workerUrl + '/api/klassik-cars');
+    const cars = await res.json();
+    carDataCache = cars;
+    renderCars(cars);
+  } catch (e) {
+    list.innerHTML = '<div class="empty-state">Fehler beim Laden: ' + e.message + '</div>';
+  }
+}
+
+function renderCars(cars) {
+  const list  = document.getElementById('carList');
+  const count = document.getElementById('carCount');
+  count.textContent = cars.length + ' Fahrzeug' + (cars.length !== 1 ? 'e' : '');
+
+  if (!cars.length) {
+    list.innerHTML = '<div class="empty-state">Noch keine Fahrzeuge eingetragen.</div>';
+    return;
+  }
+
+  list.innerHTML = '';
+  // newest first
+  [...cars].reverse().forEach(function(car) {
+    const row = document.createElement('div');
+    row.className = 'car-row';
+
+    const imgEl = car.imageUrl
+      ? `<img src="${esc(car.imageUrl)}" class="car-thumb" alt="" onerror="this.style.display='none'">`
+      : `<div class="car-thumb-placeholder">🚗</div>`;
+
+    row.innerHTML = `
+      ${imgEl}
+      <div class="car-info">
+        <div class="car-name">${esc(car.name)}</div>
+        <div class="car-meta">${[car.year, car.status].filter(Boolean).join(' · ')}</div>
+      </div>
+      ${car.price ? `<div class="car-price">${esc(car.price)}</div>` : ''}
+      <button class="btn btn-edit" onclick="editCar('${esc(car.id)}')">Bearbeiten</button>
+      <button class="btn btn-danger" onclick="deleteCar('${esc(car.id)}', '${esc(car.name)}')">Löschen</button>
+    `;
+    list.appendChild(row);
+  });
+}
+
+/* ── Add / Edit car ── */
+async function addCar() {
+  const btn  = document.getElementById('addBtn');
+  const name = document.getElementById('carName').value.trim();
+  if (!name) { showAlert('addAlert', 'error', 'Bitte einen Fahrzeugnamen eingeben.'); return; }
+
+  const car = {
+    name,
+    year:        document.getElementById('carYear').value.trim(),
+    price:       document.getElementById('carPrice').value.trim(),
+    status:      document.getElementById('carStatus').value,
+    marke:       document.getElementById('carMarke').value.trim(),
+    karosserie:  document.getElementById('carKarosserie').value.trim(),
+    epoche:      document.getElementById('carEpoche').value.trim(),
+    herkunft:    document.getElementById('carHerkunft').value.trim(),
+    heroText:    document.getElementById('carHeroText').value.trim(),
+    desc:        document.getElementById('carDesc').value.trim(),
+    imageUrl:    selectedImages[0] || '',
+    images:      selectedImages.slice(),
+    facts:       collectFacts(),
+    detailUrl:   document.getElementById('carLink').value.trim(),
+  };
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Speichern…';
+  clearAlert('addAlert');
+
+  const isEdit = !!editingCarId;
+  const url    = isEdit ? workerUrl + '/api/klassik-cars/' + editingCarId : workerUrl + '/api/klassik-cars';
+  const method = isEdit ? 'PUT' : 'POST';
+
+  try {
+    const res  = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+      body: JSON.stringify(car),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Fehler beim Speichern');
+    showAlert('addAlert', 'success', isEdit ? `„${name}" wurde aktualisiert.` : `„${name}" wurde hinzugefügt.`);
+    editingCarId = null;
+    resetForm();
+    loadCars();
+  } catch (e) {
+    if (e.message.includes('401') || e.message.toLowerCase().includes('autoris')) {
+      showAlert('addAlert', 'error', 'Sitzung abgelaufen. Bitte neu anmelden.');
+      doLogout();
+    } else {
+      showAlert('addAlert', 'error', e.message);
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = isEdit ? 'Änderungen speichern' : 'Fahrzeug hinzufügen';
+  }
+}
+
+/* ── Edit car ── */
+function editCar(id) {
+  var car = carDataCache.find(function(c) { return c.id === id; });
+  if (!car) return;
+  editingCarId = id;
+
+  document.getElementById('carName').value        = car.name || '';
+  document.getElementById('carYear').value        = car.year || '';
+  document.getElementById('carPrice').value       = car.price || '';
+  document.getElementById('carStatus').value      = car.status || 'Zu verkaufen';
+  document.getElementById('carMarke').value       = car.marke || '';
+  document.getElementById('carKarosserie').value  = car.karosserie || '';
+  document.getElementById('carEpoche').value      = car.epoche || '';
+  document.getElementById('carHerkunft').value    = car.herkunft || '';
+  document.getElementById('carHeroText').value    = car.heroText || '';
+  document.getElementById('carDesc').value        = car.desc || '';
+  document.getElementById('carLink').value        = car.detailUrl || '';
+
+  selectedImages = (car.images && car.images.length) ? car.images.slice() : (car.imageUrl ? [car.imageUrl] : []);
+  document.getElementById('carImage').value = selectedImages[0] || '';
+  renderImagePreviews();
+
+  document.getElementById('factsContainer').innerHTML = '';
+  if (Array.isArray(car.facts)) {
+    car.facts.forEach(function(f) { addFactRow(f.label, f.value); });
+  }
+  // Any top-level field that has no dedicated input → add as fact row
+  var KNOWN = ['id','name','year','price','status','marke','karosserie','epoche','herkunft',
+                'heroText','desc','imageUrl','images','facts','detailUrl','createdAt'];
+  Object.keys(car).forEach(function(key) {
+    if (KNOWN.indexOf(key) !== -1) return;
+    var val = car[key];
+    if (typeof val === 'string' && val) addFactRow(key, val);
+  });
+
+  document.getElementById('formTitle').textContent = 'Fahrzeug bearbeiten';
+  document.getElementById('addBtn').textContent = 'Änderungen speichern';
+  document.getElementById('cancelEditBtn').classList.remove('hidden');
+  clearAlert('addAlert');
+  document.getElementById('formTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function cancelEdit() {
+  editingCarId = null;
+  resetForm();
+}
+
+function resetForm() {
+  ['carName','carYear','carPrice','carHeroText','carDesc','carLink','carMarke','carKarosserie','carEpoche','carHerkunft'].forEach(function(id) {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('carStatus').value = 'Zu verkaufen';
+  document.getElementById('factsContainer').innerHTML = '';
+  resetImagePicker();
+  document.getElementById('formTitle').textContent = 'Neues Fahrzeug hinzufügen';
+  document.getElementById('addBtn').textContent = 'Fahrzeug hinzufügen';
+  document.getElementById('cancelEditBtn').classList.add('hidden');
+  clearAlert('addAlert');
+}
+
+/* ── Delete car ── */
+async function deleteCar(id, name) {
+  if (!confirm(`„${name}" wirklich löschen?`)) return;
+  try {
+    const res = await fetch(workerUrl + '/api/klassik-cars/' + id, {
+      method: 'DELETE',
+      headers: { 'Authorization': 'Bearer ' + authToken },
+    });
+    if (!res.ok) throw new Error('Fehler beim Löschen');
+    loadCars();
+  } catch (e) {
+    alert('Fehler: ' + e.message);
+  }
+}
+
+/* ── Helpers ── */
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function showAlert(id, type, msg) {
+  const el = document.getElementById(id);
+  el.className = 'alert alert-' + type;
+  el.textContent = msg;
+  el.classList.remove('hidden');
+}
+function clearAlert(id) {
+  const el = document.getElementById(id);
+  el.className = 'hidden';
+  el.textContent = '';
+}
+
+/* ── Image picker (multiple) ── */
+var selectedImages = [];
+
+function handleImageFiles(input) {
+  processFiles(Array.from(input.files));
+}
+
+function processFiles(files) {
+  const imageFiles = files.filter(function(f) { return f.type.startsWith('image/'); });
+  imageFiles.forEach(function(file) {
+    const reader = new FileReader();
+    reader.onload = function(e) { compressImage(e.target.result); };
+    reader.readAsDataURL(file);
+  });
+}
+
+function compressImage(dataUrl) {
+  const img = new Image();
+  img.onload = function() {
+    const MAX = 1200;
+    let w = img.width, h = img.height;
+    if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; }
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    const compressed = canvas.toDataURL('image/jpeg', 0.78);
+    selectedImages.push(compressed);
+    document.getElementById('carImage').value = selectedImages[0];
+    renderImagePreviews();
+  };
+  img.src = dataUrl;
+}
+
+function renderImagePreviews() {
+  const container = document.getElementById('imagePreviews');
+  document.getElementById('imagePickerPlaceholder').style.display = selectedImages.length ? 'none' : '';
+  document.getElementById('imagePickerArea').style.borderColor = selectedImages.length ? 'var(--gold)' : '';
+  container.innerHTML = '';
+  selectedImages.forEach(function(src, idx) {
+    const wrap = document.createElement('div');
+    wrap.style.cssText = 'position:relative;display:inline-block;';
+    const isMain = idx === 0;
+    wrap.innerHTML =
+      '<img src="' + src + '" style="width:100px;height:75px;object-fit:cover;border-radius:6px;display:block;' +
+        (isMain ? 'outline:2px solid var(--gold);' : '') + '">' +
+      (isMain ? '<span style="position:absolute;bottom:3px;left:3px;background:var(--gold);color:#000;font-size:.6rem;font-weight:700;padding:1px 5px;border-radius:3px;">Haupt</span>' : '') +
+      '<button onclick="removeImage(' + idx + ')" style="position:absolute;top:3px;right:3px;background:rgba(0,0,0,.7);color:#fff;border:none;border-radius:50%;width:20px;height:20px;font-size:.75rem;cursor:pointer;line-height:1;">✕</button>';
+    container.appendChild(wrap);
+  });
+}
+
+function removeImage(idx) {
+  selectedImages.splice(idx, 1);
+  document.getElementById('carImage').value = selectedImages[0] || '';
+  renderImagePreviews();
+}
+
+/* Drag & drop onto picker area */
+document.addEventListener('DOMContentLoaded', function() {
+  const area = document.getElementById('imagePickerArea');
+  if (!area) return;
+  area.addEventListener('dragover', function(e) { e.preventDefault(); area.style.borderColor = 'var(--gold)'; });
+  area.addEventListener('dragleave', function() { if (!selectedImages.length) area.style.borderColor = ''; });
+  area.addEventListener('drop', function(e) {
+    e.preventDefault();
+    processFiles(Array.from(e.dataTransfer.files));
+  });
+});
+
+/* ── Custom fact rows ── */
+function addFactRow(label, value) {
+  var container = document.getElementById('factsContainer');
+  var row = document.createElement('div');
+  row.style.cssText = 'display:flex;gap:.5rem;align-items:center';
+  row.innerHTML =
+    '<input type="text" placeholder="Bezeichnung (z.B. Marke)" value="' + esc(label || '') + '" style="flex:1" class="fact-label">' +
+    '<input type="text" placeholder="Wert (z.B. Opel)" value="' + esc(value || '') + '" style="flex:1" class="fact-value">' +
+    '<button type="button" style="background:transparent;border:1px solid var(--line);color:var(--text-faint);border-radius:6px;padding:.3rem .6rem;cursor:pointer;font-size:.85rem" onclick="this.closest(\'div\').remove()">✕</button>';
+  container.appendChild(row);
+}
+
+function collectFacts() {
+  var rows = document.querySelectorAll('#factsContainer > div');
+  var facts = [];
+  rows.forEach(function(row) {
+    var label = row.querySelector('.fact-label').value.trim();
+    var value = row.querySelector('.fact-value').value.trim();
+    if (label && value) facts.push({ label: label, value: value });
+  });
+  return facts;
+}
+
+/* Reset image picker when form resets */
+function resetImagePicker() {
+  selectedImages = [];
+  document.getElementById('carImage').value = '';
+  document.getElementById('carImageFile').value = '';
+  document.getElementById('imagePreviews').innerHTML = '';
+  document.getElementById('imagePickerPlaceholder').style.display = '';
+  document.getElementById('imagePickerArea').style.borderColor = '';
+}
+
+/* ── Import static cars ── */
+var STATIC_CARS = [
+  {
+    name: 'Opel Blitz Abschleppwagen', detailUrl: 'blitz-abschleppwagen.html',
+    heroText: 'Ein Stück Firmengeschichte auf Rädern.',
+    desc: 'Dieser Opel Blitz diente einst als Abschleppwagen von Wilhelm Pufahl, dem Gründer unseres Familienbetriebs — heute ein liebevoll erhaltenes Stück der eigenen Firmengeschichte. Mit seinem markanten Kranaufbau und der originalen Beschriftung erinnert er an die Anfänge des Unternehmens in Lengerich und ist fester Bestandteil unserer Sammlung.',
+    marke: 'Opel', karosserie: 'Abschleppwagen', epoche: '1950er Jahre', herkunft: 'Firmenfahrzeug Wilhelm Pufahl',
+    status: 'Nicht verkäuflich — Ausstellungsstück', facts: [],
+  },
+  {
+    name: 'Opel Ascona-B Sport', detailUrl: 'ascona-b-sport.html',
+    heroText: 'Ein Klassiker der 1980er Jahre in bemerkenswert gepflegtem Zustand.',
+    desc: 'Der Ascona B mit sportlicher Sport-Ausstattung zeigt sich in einem bemerkenswert gepflegten Originalzustand — inklusive der markanten Sport-Dekorstreifen an der Flanke. Ein unaufgeregter Youngtimer, der die Alltagstauglichkeit der 1980er Jahre mit einem Hauch Sportlichkeit verbindet.',
+    marke: 'Opel', karosserie: 'Limousine', epoche: '1980er Jahre', herkunft: '',
+    status: 'Nicht verkäuflich — Ausstellungsstück',
+    facts: [{ label: 'Ausstattung', value: 'Sport-Paket' }],
+  },
+  {
+    name: 'Opel Rekord Coupé', detailUrl: 'rekord-coupe.html',
+    heroText: 'Elegantes Coupé mit zeittypischer Chromzierde.',
+    desc: 'Dieses Rekord-Coupé in frischem Mintgrün ist ein seltener Vertreter der Baureihe — schlank, elegant und mit der für die Zeit charakteristischen Chromzierde versehen. Die klaren Linien und die zurückhaltende Eleganz machen dieses Fahrzeug zu einem echten Blickfang in unserem Bestand.',
+    marke: 'Opel', karosserie: 'Coupé', epoche: '1960er / 70er Jahre', herkunft: '',
+    status: 'Nicht verkäuflich — Ausstellungsstück',
+    facts: [{ label: 'Farbe', value: 'Mintgrün' }],
+  },
+  {
+    name: 'Opel Diplomat V8', detailUrl: 'diplomat-v8.html',
+    heroText: 'Das Flaggschiff der 1960er Jahre mit kraftvollem V8-Motor.',
+    desc: 'Der Diplomat V8 war Opels Antwort auf die automobile Oberklasse — großzügig dimensioniert, komfortabel ausgestattet und mit kraftvollem V8-Antrieb. Mit seiner imposanten Erscheinung und dem markanten Kühlergrill repräsentiert er das Flaggschiff der Opel-Modellpalette jener Jahre.',
+    marke: 'Opel', karosserie: 'Limousine', epoche: '1960er Jahre', herkunft: '',
+    status: 'Nicht verkäuflich — Ausstellungsstück',
+    facts: [{ label: 'Motor', value: 'V8' }],
+  },
+  {
+    name: 'Dodge Challenger R/T', detailUrl: 'challenger-rt.html',
+    heroText: 'Amerikanischer Muscle-Car-Charakter mit kraftvoller Präsenz.',
+    desc: 'Der Challenger R/T bringt unverkennbaren amerikanischen Muscle-Car-Charakter in unseren Bestand — kraftvolle Proportionen, markante Motorhaubensicke und der ikonische Kühlergrill. Ein echter Blickfang für alle, die Freude an ausdrucksstarkem US-Design haben.',
+    marke: 'Dodge', karosserie: 'Coupé', epoche: '', herkunft: 'USA',
+    status: 'Nicht verkäuflich — Ausstellungsstück',
+    facts: [{ label: 'Stil', value: 'Muscle Car' }],
+  },
+  {
+    name: 'Pontiac Firebird', detailUrl: 'pontiac-firebird.html',
+    heroText: 'Baujahr 1968 — ein ikonisches US-Muscle-Car.',
+    desc: 'Dieser Pontiac Firebird aus dem Jahr 1968 besticht durch sein unverwechselbares Doppelscheinwerfer-Design und die zeittypisch kraftvolle Frontpartie. Als einer der Ur-Vertreter der amerikanischen Pony-Car-Ära zählt der Firebird zu den gefragtesten Klassikern seiner Zeit.',
+    marke: 'Pontiac', karosserie: 'Coupé', epoche: '1960er Jahre', herkunft: 'USA', year: '1968',
+    status: 'Nicht verkäuflich — Ausstellungsstück',
+    facts: [{ label: 'Stil', value: 'Muscle Car' }],
+  },
+  {
+    name: 'Opel Rekord P2', detailUrl: 'rekord-p2.html',
+    heroText: 'Stilechtes Türkis mit cremefarbenem Dach.',
+    desc: 'Der Rekord P2 aus den frühen 1960er Jahren zeigt sich in stilechtem Türkis mit cremefarbenem Dach — eine für die Ära typische, elegante Farbkombination. Die charakteristische Kühlergrill-Gestaltung und die schlanke Linienführung machen ihn zu einem zeitlosen Vertreter der deutschen Wirtschaftswunder-Jahre.',
+    marke: 'Opel', karosserie: 'Limousine', epoche: 'Frühe 1960er Jahre', herkunft: '',
+    status: 'Nicht verkäuflich — Ausstellungsstück',
+    facts: [{ label: 'Farbe', value: 'Türkis / Creme' }],
+  },
+  {
+    name: 'Opel Admiral', detailUrl: 'admiral.html',
+    heroText: 'Elegante Limousine der 1960er Jahre.',
+    desc: 'Der Admiral verkörpert die gehobene Klasse der 1960er Jahre — großzügiger Innenraum, rotes Lederinterieur und eine würdevolle, klassische Linienführung. Ein Fahrzeug, das die automobile Eleganz jener Zeit auf besondere Weise transportiert.',
+    marke: 'Opel', karosserie: 'Limousine', epoche: '1960er Jahre', herkunft: '',
+    status: 'Nicht verkäuflich — Ausstellungsstück',
+    facts: [{ label: 'Innenraum', value: 'Rotes Lederinterieur' }],
+  },
+];
+
+async function extractImageFromPage(url) {
+  try {
+    var res = await fetch(url);
+    if (!res.ok) return '';
+    var html = await res.text();
+    var m = html.match(/class="photo-bg"[^>]*src="(data:image\/[^"]+)"/);
+    if (!m) m = html.match(/src="(data:image\/jpeg;base64,[^"]+)"/);
+    return m ? m[1] : '';
+  } catch (e) { return ''; }
+}
+
+async function importStaticCars() {
+  var toAdd  = STATIC_CARS.filter(function(c) { return !carDataCache.find(function(e) { return e.name === c.name; }); });
+  var toSync = STATIC_CARS.filter(function(c) { return  carDataCache.find(function(e) { return e.name === c.name; }); });
+  var total  = toAdd.length + toSync.length;
+
+  if (!total) { showAlert('importAlert', 'success', 'Nichts zu importieren.'); return; }
+
+  var msg = [];
+  if (toAdd.length)  msg.push(toAdd.length  + ' neu importieren');
+  if (toSync.length) msg.push(toSync.length + ' aktualisieren (Texte & Fotos)');
+  if (!confirm(msg.join(', ') + '?\n\nFotos werden automatisch aus den Detailseiten geladen.')) return;
+
+  showAlert('importAlert', 'success', 'Lädt… bitte warten.');
+  var failed = 0;
+
+  for (var i = 0; i < toAdd.length; i++) {
+    var s = toAdd[i];
+    var img = await extractImageFromPage(s.detailUrl);
+    var car = {
+      name: s.name, detailUrl: s.detailUrl, heroText: s.heroText || '', desc: s.desc || '',
+      marke: s.marke || '', karosserie: s.karosserie || '', epoche: s.epoche || '',
+      herkunft: s.herkunft || '', year: s.year || '', status: s.status || 'Ausgestellt',
+      imageUrl: img, images: img ? [img] : [], facts: s.facts || [],
+    };
+    try {
+      var r = await fetch(workerUrl + '/api/klassik-cars', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+        body: JSON.stringify(car),
+      });
+      if (!r.ok) failed++;
+    } catch(e) { failed++; }
+  }
+
+  for (var j = 0; j < toSync.length; j++) {
+    var s2 = toSync[j];
+    var existing = carDataCache.find(function(e) { return e.name === s2.name; });
+    var img2 = existing.imageUrl || (await extractImageFromPage(s2.detailUrl));
+    var updated = Object.assign({}, existing, {
+      heroText: s2.heroText || existing.heroText || '',
+      desc:     s2.desc     || existing.desc     || '',
+      marke:       s2.marke       || existing.marke       || '',
+      karosserie:  s2.karosserie  || existing.karosserie  || '',
+      epoche:      s2.epoche      || existing.epoche      || '',
+      herkunft:    s2.herkunft    || existing.herkunft    || '',
+      year:        s2.year        || existing.year        || '',
+      status:      s2.status      || existing.status      || '',
+      facts:       (s2.facts && s2.facts.length) ? s2.facts : (existing.facts || []),
+      imageUrl: img2, images: img2 ? (existing.images && existing.images.length ? existing.images : [img2]) : (existing.images || []),
+    });
+    try {
+      var r2 = await fetch(workerUrl + '/api/klassik-cars/' + existing.id, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + authToken },
+        body: JSON.stringify(updated),
+      });
+      if (!r2.ok) failed++;
+    } catch(e) { failed++; }
+  }
+
+  if (failed) {
+    showAlert('importAlert', 'error', (total - failed) + ' erfolgreich, ' + failed + ' fehlgeschlagen.');
+  } else {
+    showAlert('importAlert', 'success', total + ' Fahrzeuge aktualisiert.');
+  }
+  loadCars();
+}
+
+/* Login on Enter */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter' && !document.getElementById('loginPanel').classList.contains('hidden')) {
+    doLogin();
+  }
+});
+</script>
+<script src="cookie-consent.js"></script>
+</body>
+</html>

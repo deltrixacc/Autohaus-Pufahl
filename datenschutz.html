@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
@@ -206,22 +206,31 @@ body::before{
 
 /* mobile overlay menu */
 .mobile-menu{
-  position:fixed;inset:0;z-index:99;background:rgba(16,19,25,.97);
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  display:flex;flex-direction:column;justify-content:center;gap:.4rem;
+  position:fixed;inset:0;z-index:99;
+  background:linear-gradient(160deg,rgba(22,25,34,.98) 0%,rgba(10,12,18,.99) 100%);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  display:flex;flex-direction:column;justify-content:center;gap:0;
   padding:6rem var(--pad) 3rem;
-  opacity:0;visibility:hidden;transform:translateY(-12px);
-  transition:opacity .4s var(--ease), transform .4s var(--ease), visibility .4s;
+  opacity:0;visibility:hidden;transform:translateY(-10px);
+  transition:opacity .35s var(--ease),transform .35s var(--ease),visibility .35s;
+}
+.mobile-menu::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(to bottom,rgba(190,155,80,.1) 0%,transparent 45%);
 }
 .mobile-menu.open{opacity:1;visibility:visible;transform:none}
 .mobile-menu a{
   font-family:var(--ff-display);text-transform:uppercase;font-weight:600;
-  font-size:clamp(2rem,9vw,3rem);line-height:1.1;color:var(--text);
-  padding:.4rem 0;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:1rem;
+  font-size:clamp(1.25rem,5vw,1.6rem);line-height:1.15;color:var(--text);
+  padding:.65rem 0;position:relative;display:flex;align-items:center;
 }
-.mobile-menu a .n{font-family:var(--ff-mono);font-size:.8rem;color:var(--text-dim);font-weight:500}
+.mobile-menu a::after{
+  content:'';position:absolute;bottom:0;left:0;right:0;height:1px;
+  background:linear-gradient(to right,transparent,rgba(255,255,255,.1) 20%,rgba(255,255,255,.1) 80%,transparent);
+}
 .mobile-menu a.active{color:var(--text)}
-.mobile-menu .btn{margin-top:1.75rem;align-self:flex-start}
+.mobile-menu .btn{margin-top:2rem;align-self:flex-start;font-size:.8rem;padding:.7em 1.4em;letter-spacing:.06em}
+.mobile-menu .btn-gold{color:#0A0A0C}
 
 /* ==========================================================================
    HERO (home)
@@ -1399,6 +1408,8 @@ body::before{
   'use strict';
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  document.addEventListener('DOMContentLoaded', function () {
+
   /* ---- footer year ---- */
   document.querySelectorAll('[data-year]').forEach(el => { el.textContent = new Date().getFullYear(); });
 
@@ -1541,8 +1552,10 @@ body::before{
         form.reset();
         if (btn) { btn.disabled = false; btn.textContent = 'Anfrage senden'; }
       }, 700);
-    
-  /* ---- vehicle cards: make entire card clickable → mobile.de ---- */
+    });
+  }
+
+  /* ---- vehicle cards → mobile.de ---- */
   document.querySelectorAll('.vehicle-card').forEach(function(card) {
     card.addEventListener('click', function(e) {
       // Don't double-trigger if clicking the button itself
@@ -1551,8 +1564,7 @@ body::before{
     });
   });
 
-});
-  }
+  }); // DOMContentLoaded
 })();
 
 /* ==========================================================================
@@ -1780,7 +1792,7 @@ Return ONLY the JSON array (no other text). Include up to 9 vehicles.`
   </div>
 </header>
 <div class="mobile-menu" id="mobileMenu">
-  <a href="index.html"><span class="n">01</span>Startseite</a><a href="fahrzeuge.html"><span class="n">02</span>Gebrauchtwagen</a><a href="neuwagen.html"><span class="n">03</span>Neuwagen</a><a href="klassik-cars.html"><span class="n">04</span>Klassik Cars</a><a href="service.html" class="active" aria-current="page"><span class="n">05</span>Service</a><a href="ueber-uns.html"><span class="n">06</span>Über uns</a><a href="stellenangebote.html"><span class="n">07</span>Stellenangebote</a><a href="kontakt.html"><span class="n">08</span>Kontakt</a>
+  <a href="index.html">Startseite</a><a href="fahrzeuge.html">Gebrauchtwagen</a><a href="neuwagen.html">Neuwagen</a><a href="klassik-cars.html">Klassik Cars</a><a href="service.html" class="active" aria-current="page">Service</a><a href="ueber-uns.html">Über uns</a><a href="stellenangebote.html">Stellenangebote</a><a href="jubilaeum.html">100 Jahre</a><a href="kontakt.html">Kontakt</a>
   <a class="btn btn-gold" href="kontakt.html">Termin vereinbaren</a>
 </div>
 <main id="main">
@@ -1961,7 +1973,6 @@ Return ONLY the JSON array (no other text). Include up to 9 vehicles.`
 </main>
 
 <footer class="footer">
-  <div class="footer-ghost" aria-hidden="true">100</div>
     <div class="container">
     <div class="footer-grid">
       <div class="f-brand">
@@ -2536,21 +2547,12 @@ REGELN: Antworte in 1–4 Sätzen. Bei Terminen, Probefahrten, konkreten Preisen
   }
 
   async function callRemote(){
-    if(PF_AI_ENDPOINT){
-      const r=await fetch(PF_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({messages:history})});
-      if(!r.ok) throw new Error('worker '+r.status);
-      const d=await r.json();
-      return d.reply || (d.content&&d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n')) || null;
-    } else {
-      // Vorschau-Versuch über Claude.ai-API (nur in der Sandbox verfügbar)
-      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,system:KNOWLEDGE,messages:history})});
-      if(!r.ok) throw new Error('api '+r.status);
-      const d=await r.json();
-      return (d.content&&d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n')) || null;
-    }
+    if(!PF_AI_ENDPOINT) throw new Error('no endpoint');
+    const r=await fetch(PF_AI_ENDPOINT,{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:history})});
+    if(!r.ok) throw new Error('worker '+r.status);
+    const d=await r.json();
+    return d.reply || (d.content&&d.content.filter(b=>b.type==='text').map(b=>b.text).join('\n')) || null;
   }
 
   async function ask(text){
@@ -2577,5 +2579,6 @@ REGELN: Antworte in 1–4 Sätzen. Bei Terminen, Probefahrten, konkreten Preisen
 </script>
 <!-- ═══════════════ /KI-ASSISTENT WIDGET ═══════════════ -->
 
+<script src="cookie-consent.js"></script>
 </body>
 </html>

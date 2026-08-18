@@ -26,3 +26,10 @@ window.INVENTORY_API = ""; /* e.g. "https://pufahl-inventory.<you>.workers.dev/a
  * the page then shows a notice and a "search on mobile.de" fallback link.
  */
 window.MOBILE_SEARCH_API = ""; /* e.g. "https://pufahl-inventory.<you>.workers.dev/api/search" */
+
+/**
+ * KLASSIK_WORKER_URL — used by klassik-cars.html to load CMS-managed classic cars.
+ * Point it at the same worker's base URL (no path).
+ * Leave "" to hide the dynamic section entirely.
+ */
+window.KLASSIK_WORKER_URL = "https://aged-butterfly-2054.m727hp.workers.dev";
