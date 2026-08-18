@@ -2552,14 +2552,9 @@ REGELN: Antworte in 1–4 Sätzen. Bei Terminen, Probefahrten, konkreten Preisen
         var linkHref = car.detailUrl || ('klassik-detail.html?id=' + car.id);
         var inner = '<a href="' + linkHref + '" class="sr-photo-link" aria-label="' + (car.name || '') + ' ansehen">' + photoDiv + '</a>';
 
-        var priceHtml = car.price
-          ? '<div style="font-size:.82rem;color:#C8A44A;font-weight:600;margin-top:.25rem">' + car.price + '</div>'
-          : '';
-
         item.innerHTML =
           '<h3 class="sr-name"><a href="' + linkHref + '" style="text-decoration:none;color:inherit">' + (car.name || '') + '</a></h3>' +
-          inner +
-          priceHtml;
+          inner;
 
         grid.insertBefore(item, grid.firstChild);
       });
