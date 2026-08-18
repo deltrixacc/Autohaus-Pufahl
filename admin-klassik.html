@@ -1,7 +1,9 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self';">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Klassik Cars — Verwaltung</title>
 <style>
@@ -307,8 +309,23 @@ function saveWorkerUrl() {
   show('loginPanel');
 }
 
+/* ── Brute-force protection ── */
+var BF_KEY = 'pf_bf'; var BF_MAX = 5; var BF_LOCKOUT = 15 * 60 * 1000;
+function bfGet() { try { return JSON.parse(localStorage.getItem(BF_KEY)||'{}' ); } catch(e){ return {}; } }
+function bfSet(s) { localStorage.setItem(BF_KEY, JSON.stringify(s)); }
+function bfLocked() {
+  var s = bfGet(); if (!s.n || s.n < BF_MAX) return 0;
+  var rem = BF_LOCKOUT - (Date.now() - s.t);
+  if (rem <= 0) { bfSet({}); return 0; }
+  return Math.ceil(rem / 60000);
+}
+function bfFail() { var s=bfGet(); s.n=(s.n||0)+1; if(s.n>=BF_MAX) s.t=Date.now(); bfSet(s); }
+function bfClear() { bfSet({}); }
+
 /* ── Login ── */
 async function doLogin() {
+  const mins = bfLocked();
+  if (mins) { showAlert('loginAlert', 'error', 'Zu viele Fehlversuche – bitte noch ' + mins + ' Minute' + (mins===1?'':'n') + ' warten.'); return; }
   const btn  = document.getElementById('loginBtn');
   const user = document.getElementById('loginUser').value.trim();
   const pass = document.getElementById('loginPass').value;
@@ -326,13 +343,21 @@ async function doLogin() {
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Fehler beim Anmelden');
+    bfClear();
     authToken = data.token;
     sessionStorage.setItem(STORAGE_AUTH_KEY, authToken);
     sessionStorage.setItem(STORAGE_USER_KEY, user);
     hide('loginPanel');
     showApp();
   } catch (e) {
-    showAlert('loginAlert', 'error', e.message);
+    bfFail();
+    const minsLeft = bfLocked();
+    if (minsLeft) {
+      showAlert('loginAlert', 'error', 'Zu viele Fehlversuche – bitte noch ' + minsLeft + ' Minute' + (minsLeft===1?'':'n') + ' warten.');
+    } else {
+      const left = BF_MAX - bfGet().n;
+      showAlert('loginAlert', 'error', e.message + (left > 0 ? ' (' + left + ' Versuch' + (left===1?'':'e') + ' verbleibend)' : ''));
+    }
   } finally {
     btn.disabled = false;
     btn.textContent = 'Anmelden';
@@ -800,6 +825,30 @@ async function importStaticCars() {
   }
   loadCars();
 }
+
+/* ── Session timeout (30 Min. Inaktivität) ── */
+(function(){
+  var TIMEOUT = 30 * 60 * 1000;
+  var last = Date.now();
+  ['click','keydown','touchstart','scroll'].forEach(function(ev){
+    document.addEventListener(ev, function(){ last = Date.now(); }, { passive: true });
+  });
+  setInterval(function(){
+    if (authToken && Date.now() - last > TIMEOUT) {
+      doLogout();
+      showAlert('loginAlert', 'error', 'Sitzung abgelaufen – bitte neu anmelden.');
+    }
+  }, 30000);
+})();
+
+/* ── Input-Längenbegrenzung ── */
+(function(){
+  var limits = { carName:200, carYear:4, carPrice:100, carMarke:100,
+    carKarosserie:100, carEpoche:100, carHerkunft:100, carHeroText:300, carLink:300 };
+  Object.keys(limits).forEach(function(id){
+    var el = document.getElementById(id); if (el) el.maxLength = limits[id];
+  });
+})();
 
 /* Login on Enter */
 document.addEventListener('keydown', function(e) {
