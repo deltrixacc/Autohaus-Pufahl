@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob: https:; connect-src 'self' https:; object-src 'none'; base-uri 'self';">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Seite nicht gefunden — Autohaus Pufahl</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA2NCA2NCI+CiAgPGRlZnM+CiAgICA8bGluZWFyR3JhZGllbnQgaWQ9ImciIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjRjREQTkyIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMC41IiBzdG9wLWNvbG9yPSIjRTBCQzRBIi8+CiAgICAgIDxzdG9wIG9mZnNldD0iMSIgc3RvcC1jb2xvcj0iI0I4OTAxRSIvPgogICAgPC9saW5lYXJHcmFkaWVudD4KICA8L2RlZnM+CiAgPHJlY3Qgd2lkdGg9IjY0IiBoZWlnaHQ9IjY0IiByeD0iMTQiIGZpbGw9IiMwQTBBMEMiLz4KICA8cmVjdCB4PSIzLjUiIHk9IjMuNSIgd2lkdGg9IjU3IiBoZWlnaHQ9IjU3IiByeD0iMTEuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJ1cmwoI2cpIiBzdHJva2Utd2lkdGg9IjEuNSIgb3BhY2l0eT0iMC41Ii8+CiAgPHRleHQgeD0iMzIiIHk9IjQ1IiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2ssIEFyaWFsLCBzYW5zLXNlcmlmIiBmb250LXdlaWdodD0iOTAwIiBmb250LXNpemU9IjQwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ1cmwoI2cpIj5QPC90ZXh0Pgo8L3N2Zz4K" type="image/svg+xml">
+<link rel="stylesheet" href="fonts.css">
+<style>
+:root{
+  --ink:#101319;--ink-2:#12151D;--surface:#181B24;--surface-2:#1D202B;--surface-3:#242734;
+  --line:rgba(255,255,255,.08);--line-2:rgba(255,255,255,.14);
+  --text:#F4F4F6;--text-dim:#BABAC6;--text-faint:#9494A6;
+  --gold:#ECEFF1;--gold-soft:rgba(236,239,241,.14);--gold-line:rgba(236,239,241,.28);
+  --r:4px;--r-md:8px;--r-lg:14px;--maxw:1240px;--pad:clamp(1.25rem,5vw,2.5rem);
+  --ease:cubic-bezier(.22,.61,.36,1);
+  --ff-display:"Saira Condensed","Arial Narrow",sans-serif;
+  --ff-body:"Manrope",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  --ff-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*,*::before,*::after{box-sizing:border-box}
+*{margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;height:100%}
+body{
+  font-family:var(--ff-body);background:#1a1d28;color:var(--text);
+  line-height:1.65;font-size:1.0625rem;font-weight:400;letter-spacing:.005em;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  overflow-x:hidden;min-height:100%;display:flex;flex-direction:column;
+}
+body::before{
+  content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(60vw 50vh at 88% -8%,rgba(236,239,241,.07),transparent 60%),
+    radial-gradient(50vw 40vh at -10% 108%,rgba(236,239,241,.04),transparent 60%);
+}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+
+/* nav */
+.nav{position:fixed;inset:0 0 auto 0;z-index:100;background:#1a1d28;border-bottom:1px solid var(--line)}
+.nav-inner{max-width:var(--maxw);margin-inline:auto;padding:0 var(--pad);height:74px;display:flex;align-items:center;justify-content:space-between;gap:1.1rem}
+.brand{display:flex;align-items:center;gap:.75rem;flex-shrink:0;font-family:var(--ff-display);font-weight:700;font-size:1.15rem;letter-spacing:.04em;text-transform:uppercase}
+.nav-links{display:flex;align-items:center;gap:1.35rem}
+.nav-links a{font-size:.875rem;font-weight:500;color:var(--text-dim);transition:color .25s}
+.nav-links a:hover{color:var(--text)}
+.nav-right{display:flex;align-items:center;gap:.9rem}
+.nav-tel{font-family:var(--ff-mono);font-size:.8rem;color:var(--text-dim);letter-spacing:.04em;transition:color .25s}
+.nav-tel:hover{color:var(--text)}
+@media(max-width:860px){.nav-links{display:none}}
+
+/* buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.6em;padding:.95em 1.6em;border-radius:var(--r);font-family:var(--ff-body);font-weight:700;font-size:.95rem;letter-spacing:.02em;line-height:1;white-space:nowrap;transition:transform .35s var(--ease),box-shadow .35s var(--ease),background-color .3s var(--ease),border-color .3s var(--ease),color .3s var(--ease)}
+.btn-gold{background:#ECEFF1;color:#0A0A0C}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 14px 38px -12px rgba(200,200,200,.35)}
+.btn-ghost{background:rgba(255,255,255,.02);color:var(--text);border:1px solid var(--line-2)}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-soft);transform:translateY(-2px)}
+
+/* 404 content */
+main{
+  flex:1;position:relative;z-index:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:7rem var(--pad) 4rem;text-align:center;
+}
+.err-code{
+  font-family:var(--ff-display);font-weight:700;
+  font-size:clamp(7rem,18vw,14rem);line-height:.85;
+  letter-spacing:.02em;text-transform:uppercase;
+  color:transparent;
+  -webkit-text-stroke:1px rgba(236,239,241,.18);
+  user-select:none;margin-bottom:2.5rem;
+}
+.err-eyebrow{
+  display:inline-flex;align-items:center;gap:.75rem;
+  font-family:var(--ff-mono);font-size:.8rem;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--text-faint);margin-bottom:1.25rem;
+}
+.err-eyebrow::before,.err-eyebrow::after{content:"";width:22px;height:1px;background:var(--gold);opacity:.5}
+.err-title{
+  font-family:var(--ff-display);font-weight:700;text-transform:uppercase;
+  font-size:clamp(1.8rem,4vw,3rem);line-height:1;letter-spacing:.01em;
+  margin-bottom:1rem;
+}
+.err-lead{color:var(--text-dim);font-size:clamp(1rem,1.3vw,1.1rem);max-width:48ch;margin:0 auto 2.5rem}
+.err-actions{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+
+/* quick-links */
+.quick-links{
+  margin-top:4rem;padding-top:2.5rem;
+  border-top:1px solid var(--line);
+  display:flex;gap:2rem;flex-wrap:wrap;justify-content:center;
+}
+.quick-links a{
+  font-family:var(--ff-mono);font-size:.78rem;letter-spacing:.06em;
+  color:var(--text-faint);text-transform:uppercase;transition:color .25s;
+}
+.quick-links a:hover{color:var(--text)}
+
+/* footer strip */
+footer{position:relative;z-index:1;border-top:1px solid var(--line);padding:1.5rem var(--pad);text-align:center}
+footer p{font-family:var(--ff-mono);font-size:.75rem;color:var(--text-faint);letter-spacing:.04em}
+footer a{color:var(--text-faint);transition:color .25s}
+footer a:hover{color:var(--text)}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a class="brand" href="index.html">Autohaus Pufahl</a>
+    <nav class="nav-links" aria-label="Hauptnavigation">
+      <a href="fahrzeuge.html">Gebrauchtwagen</a>
+      <a href="neuwagen.html">Neuwagen</a>
+      <a href="klassik-cars.html">Klassiker</a>
+      <a href="service.html">Service</a>
+      <a href="kontakt.html">Kontakt</a>
+    </nav>
+    <div class="nav-right">
+      <a class="nav-tel" href="tel:+4954819400">05481 94000</a>
+      <a class="btn btn-gold btn-sm" href="kontakt.html">Termin</a>
+    </div>
+  </div>
+</nav>
+
+<main>
+  <div class="err-code" aria-hidden="true">404</div>
+  <span class="err-eyebrow">Seite nicht gefunden</span>
+  <h1 class="err-title">Diese Seite existiert nicht</h1>
+  <p class="err-lead">Die gesuchte Seite wurde verschoben, umbenannt oder existiert nicht mehr. Vielleicht hilft Ihnen einer der Links unten weiter.</p>
+  <div class="err-actions">
+    <a class="btn btn-gold" href="index.html">Zur Startseite</a>
+    <a class="btn btn-ghost" href="fahrzeuge.html">Fahrzeuge ansehen</a>
+  </div>
+  <nav class="quick-links" aria-label="Direktlinks">
+    <a href="neuwagen.html">Neuwagen</a>
+    <a href="klassik-cars.html">Klassiker</a>
+    <a href="service.html">Service &amp; Werkstatt</a>
+    <a href="kontakt.html">Kontakt</a>
+    <a href="impressum.html">Impressum</a>
+  </nav>
+</main>
+
+<footer>
+  <p>
+    &copy; 2024 Autohaus Pufahl GmbH &amp; Co.KG &nbsp;&mdash;&nbsp;
+    <a href="impressum.html">Impressum</a> &nbsp;&middot;&nbsp;
+    <a href="datenschutz.html">Datenschutz</a>
+  </p>
+</footer>
+
+</body>
+</html>
