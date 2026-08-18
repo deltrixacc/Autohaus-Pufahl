@@ -13,7 +13,14 @@
     document.querySelectorAll('.pf-map-block').forEach(function (b) { b.remove(); });
   }
 
-  function showMapBlock() {
+  function clearMapBlocks() {
+    document.querySelectorAll('.pf-map-block').forEach(function (b) { b.remove(); });
+  }
+
+  /* mode: 'pending'  = noch keine Entscheidung getroffen
+     mode: 'declined' = Nutzer hat "Nur notwendige" gewählt                */
+  function showMapBlock(mode) {
+    var pending = (mode === 'pending');
     document.querySelectorAll('iframe[data-maps-src]').forEach(function (f) {
       var w = f.parentElement;
       if (!w || w.querySelector('.pf-map-block')) return;
@@ -22,8 +29,11 @@
       d.className = 'pf-map-block';
       d.style.cssText = 'position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.75rem;background:#12151D;color:#9b988f;font-size:.82rem;text-align:center;padding:1.25rem;font-family:Manrope,sans-serif';
       d.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" style="width:28px;height:28px;opacity:.35" aria-hidden="true"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg>'
-        + '<span>Google Maps wurde nicht geladen.<br>Bitte passen Sie die Cookie-Einstellungen an.</span>'
-        + '<button onclick="window.pfConsent.revoke()" style="padding:.35rem 1rem;border:1px solid rgba(236,239,241,.2);border-radius:6px;background:transparent;color:#D4AF5A;cursor:pointer;font-size:.78rem">Einstellungen ändern</button>';
+        + '<span>' + (pending
+            ? 'Karte wird erst auf Ihren Klick geladen.<br>Dabei wird Ihre IP-Adresse an Google übertragen.'
+            : 'Google Maps wurde nicht geladen.<br>Bitte passen Sie die Cookie-Einstellungen an.') + '</span>'
+        + '<button onclick="window.pfConsent.' + (pending ? 'accept()' : 'revoke()') + '" style="padding:.35rem 1rem;border:1px solid rgba(236,239,241,.2);border-radius:6px;background:transparent;color:#D4AF5A;cursor:pointer;font-size:.78rem">'
+        + (pending ? 'Karte laden' : 'Einstellungen ändern') + '</button>';
       w.appendChild(d);
     });
   }
@@ -34,14 +44,22 @@
   }
 
   function accept() { set('accepted'); removeBanner(); loadMaps(); }
-  function decline() { set('declined'); removeBanner(); showMapBlock(); }
+  function decline() { set('declined'); removeBanner(); clearMapBlocks(); showMapBlock('declined'); }
   function revoke() { remove(); location.reload(); }
 
   window.pfConsent = { accept: accept, decline: decline, revoke: revoke };
 
+  function onReady(fn) {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn);
+    else fn();
+  }
+
   var saved = get();
-  if (saved === 'accepted') { document.addEventListener('DOMContentLoaded', loadMaps); return; }
-  if (saved === 'declined') { document.addEventListener('DOMContentLoaded', showMapBlock); return; }
+  if (saved === 'accepted') { onReady(loadMaps); return; }
+  if (saved === 'declined') { onReady(function () { showMapBlock('declined'); }); return; }
+
+  /* Noch keine Entscheidung: Platzhalter statt leerem Kasten anzeigen. */
+  onReady(function () { showMapBlock('pending'); });
 
   function injectBanner() {
     var banner = document.createElement('div');
